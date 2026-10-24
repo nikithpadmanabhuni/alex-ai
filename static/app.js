@@ -1147,10 +1147,32 @@ function renderNotesCard(content, title) {
   feedLog.scrollTop = feedLog.scrollHeight;
 }
 
+function renderMemoryCard(content, title) {
+  const div = document.createElement("div");
+  div.className = "log-entry phone-action-card memory-feed-card";
+  div.innerHTML = `
+    <div class="action-card-header">
+      <span class="action-card-badge">🧠 MEMORY VAULT</span>
+      <span class="action-card-app">${title || "Memory"}</span>
+    </div>
+    <div class="action-card-body" style="padding: 12px 14px;">
+      <div style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: #38bdf8; font-family: system-ui, -apple-system, sans-serif;">
+        ${content || "No memories stored."}
+      </div>
+    </div>
+  `;
+  feedLog.appendChild(div);
+  feedLog.scrollTop = feedLog.scrollHeight;
+}
+
 function handleClientAction(action) {
   if (!action) return;
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
 
+  if (action.type === "memory_card") {
+    renderMemoryCard(action.content, action.title);
+    return;
+  }
   if (action.type === "toggle_torch") {
     toggleFlashlight(action.state);
     return;
@@ -1347,6 +1369,8 @@ function connectEvents() {
       const data = JSON.parse(event.data);
       if (data.type === "status") {
         setAppState(data.state, data.message);
+      } else if (data.type === "thought") {
+        addLogEntry("exec", `🧠 [THOUGHT]: ${data.text}`);
       } else if (data.type === "transcript") {
         addLogEntry(data.role, data.text);
       } else if (data.type === "telemetry") {
@@ -1543,6 +1567,40 @@ async function executeAutonomousClientCommand(rawCmd) {
     localStorage.removeItem("alex_notes");
     handleClientAction({ type: "note_card", content: "All notes have been cleared.", title: "Notes Cleared" });
     const msg = "All notes have been cleared.";
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+
+  // Memory Vault (Client-side)
+  const memSave = clean.match(/^(?:remember that|store in memory|save to memory)\s*[:,-]?\s*(.+)$/);
+  if (memSave) {
+    const factText = memSave[1].trim();
+    let facts = [];
+    try { facts = JSON.parse(localStorage.getItem("alex_facts") || "[]"); } catch (e) {}
+    facts.push({ fact: factText, date: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) });
+    localStorage.setItem("alex_facts", JSON.stringify(facts));
+    const content = facts.map((f, i) => `${i + 1}. ${f.fact} (${f.date})`).join("\n");
+    handleClientAction({ type: "memory_card", content, title: "Memory Vault" });
+    const msg = `Remembered: '${factText}'`;
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+  if (["show memory", "my memory", "what do you remember", "memory"].includes(clean)) {
+    let facts = [];
+    try { facts = JSON.parse(localStorage.getItem("alex_facts") || "[]"); } catch (e) {}
+    const content = facts.length ? facts.map((f, i) => `${i + 1}. ${f.fact} (${f.date})`).join("\n") : "No memories stored yet.";
+    handleClientAction({ type: "memory_card", content, title: "Memory Vault" });
+    const msg = facts.length ? "Displaying your memory vault." : "No memories stored yet.";
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+  if (["clear memory", "delete memory"].includes(clean)) {
+    localStorage.removeItem("alex_facts");
+    handleClientAction({ type: "memory_card", content: "Memory vault cleared.", title: "Memory Cleared" });
+    const msg = "All memories have been cleared.";
     addLogEntry("alex", msg);
     playAlexVoice(msg);
     return;

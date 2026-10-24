@@ -172,6 +172,75 @@ def clear_user_notes():
         return "Could not clear notes."
 
 # ---------------------------------------------------------
+# Long-Term Memory Vault (OpenJarvis Persistent Fact Store)
+# ---------------------------------------------------------
+import sqlite3
+
+MEMORY_DB_PATH = os.path.join(os.path.dirname(__file__), "alex_memory.db")
+
+def init_memory_db():
+    try:
+        with sqlite3.connect(MEMORY_DB_PATH) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS facts (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fact TEXT NOT NULL,
+                    category TEXT DEFAULT 'general',
+                    created_at TEXT NOT NULL
+                )
+            """)
+            conn.commit()
+    except Exception as e:
+        print(f"[Memory Init Error]: {e}")
+
+init_memory_db()
+
+def save_memory_fact(fact_text, category="user"):
+    clean_fact = fact_text.strip()
+    if not clean_fact:
+        return "Empty fact."
+    try:
+        now_str = datetime.datetime.now().strftime("%b %d, %Y %I:%M %p")
+        with sqlite3.connect(MEMORY_DB_PATH) as conn:
+            conn.execute(
+                "INSERT INTO facts (fact, category, created_at) VALUES (?, ?, ?)",
+                (clean_fact, category, now_str)
+            )
+            conn.commit()
+        return f"Stored in memory: '{clean_fact}'"
+    except Exception as e:
+        return f"Memory error: {e}"
+
+def search_memory_facts(query=""):
+    try:
+        with sqlite3.connect(MEMORY_DB_PATH) as conn:
+            if query:
+                cursor = conn.execute(
+                    "SELECT id, fact, category, created_at FROM facts WHERE fact LIKE ? ORDER BY id DESC LIMIT 10",
+                    (f"%{query}%",)
+                )
+            else:
+                cursor = conn.execute(
+                    "SELECT id, fact, category, created_at FROM facts ORDER BY id DESC LIMIT 15"
+                )
+            rows = cursor.fetchall()
+            if not rows:
+                return "No memories stored yet."
+            lines = [f"{i+1}. {r[1]} ({r[3]})" for i, r in enumerate(rows)]
+            return "Alex Memory Vault:\n" + "\n".join(lines)
+    except Exception as e:
+        return f"Could not retrieve memories: {e}"
+
+def clear_all_memories():
+    try:
+        with sqlite3.connect(MEMORY_DB_PATH) as conn:
+            conn.execute("DELETE FROM facts")
+            conn.commit()
+        return "All long-term memories have been cleared."
+    except Exception as e:
+        return f"Error clearing memory: {e}"
+
+# ---------------------------------------------------------
 # Math Solver (Internal calculation without web redirect)
 # ---------------------------------------------------------
 def solve_math(clean):
@@ -282,6 +351,8 @@ def ask_alex_brain(query):
         if clean_q.lower().startswith(prefix):
             clean_q = clean_q[len(prefix):].strip()
             break
+
+    broadcast_event({"type": "thought", "text": f"Analyzing '{clean_q}' using local cognitive reasoning..."})
 
     # 0. OpenJarvis Local On-Device AI inference
     try:
@@ -775,6 +846,22 @@ def get_system_permissions():
         "status": "ready"
     })
 
+@app.route("/api/memory", methods=["GET", "POST", "DELETE"])
+def handle_memory_api():
+    if request.method == "GET":
+        q = request.args.get("q", "")
+        facts_text = search_memory_facts(q)
+        return jsonify({"status": "ok", "memories": facts_text})
+    elif request.method == "POST":
+        data = request.json or {}
+        fact = data.get("fact", "").strip()
+        category = data.get("category", "user")
+        res = save_memory_fact(fact, category)
+        return jsonify({"status": "ok", "message": res})
+    elif request.method == "DELETE":
+        res = clear_all_memories()
+        return jsonify({"status": "ok", "message": res})
+
 @app.route("/api/request_permission", methods=["POST"])
 def handle_request_permission():
     data = request.json or {}
@@ -1040,8 +1127,30 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Tru
         speak_async("Flashlight turned off.")
         return msg
 
+    # Long-Term Memory Vault (OpenJarvis Persistent Fact Store)
+    mem_save_m = re.match(r'^(?:remember that|store in memory|save to memory|record memory)\s*[:,-]?\s*(.+)$', clean)
+    if mem_save_m:
+        fact_text = mem_save_m.group(1).strip()
+        msg = save_memory_fact(fact_text, category="user")
+        all_mem = search_memory_facts()
+        last_client_action = {"type": "memory_card", "content": all_mem, "title": "Memory Vault"}
+        speak_async(f"Remembered: {fact_text}")
+        return msg
+
+    if any(clean == k or clean.startswith(k) for k in ["show memory", "my memory", "what do you remember", "list memory", "view memory"]):
+        mem_text = search_memory_facts()
+        last_client_action = {"type": "memory_card", "content": mem_text, "title": "Alex Memory Vault"}
+        speak_async("Displaying your memory vault.")
+        return mem_text
+
+    if any(clean == k for k in ["clear memory", "delete memory", "clear all memories", "wipe memory"]):
+        msg = clear_all_memories()
+        last_client_action = {"type": "memory_card", "content": "Memory vault cleared.", "title": "Memory Cleared"}
+        speak_async("All memories cleared.")
+        return msg
+
     # Notes & Reminders Vault
-    note_save_m = re.match(r'^(?:remember|note down|take note|write a note|add note|save note)\s*[:,-]?\s*(.+)$', clean)
+    note_save_m = re.match(r'^(?:remember to|remember|note down|take note|write a note|add note|save note)\s*[:,-]?\s*(.+)$', clean)
     if note_save_m:
         note_content = note_save_m.group(1).strip()
         msg = save_user_note(note_content)
