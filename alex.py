@@ -973,6 +973,13 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 def index():
     return render_template("index.html")
 
+@app.route("/favicon.ico")
+def favicon():
+    return Response(
+        """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="#030712" stroke="#00f0ff" stroke-width="2"/><circle cx="16" cy="16" r="6" fill="#00ff66"/></svg>""",
+        mimetype="image/svg+xml"
+    )
+
 @app.route("/api/events")
 def sse_events():
     def event_stream():

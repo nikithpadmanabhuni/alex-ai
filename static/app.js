@@ -870,28 +870,30 @@ function animateWaveform(time) {
   });
 }
 
-canvas.addEventListener("mousemove", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  mouse.x = e.clientX - rect.left;
-  mouse.y = e.clientY - rect.top;
-  mouse.active = true;
-});
-canvas.addEventListener("mouseleave", () => {
-  mouse.active = false;
-});
+if (canvas) {
+  canvas.addEventListener("mousemove", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = e.clientX - rect.left;
+    mouse.y = e.clientY - rect.top;
+    mouse.active = true;
+  });
+  canvas.addEventListener("mouseleave", () => {
+    mouse.active = false;
+  });
 
-canvas.addEventListener("click", (e) => {
-  const rect = canvas.getBoundingClientRect();
-  const clickX = e.clientX - rect.left;
-  const clickY = e.clientY - rect.top;
-  triggerShockwave(clickX, clickY, "#00f0ff");
-  unlockAudio();
-  if (isVoiceActive) {
-    stopVoiceSession();
-  } else {
-    startVoiceSession();
-  }
-});
+  canvas.addEventListener("click", (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    triggerShockwave(clickX, clickY, "#00f0ff");
+    unlockAudio();
+    if (isVoiceActive) {
+      stopVoiceSession();
+    } else {
+      startVoiceSession();
+    }
+  });
+}
 
 // -------------------------------------------------------------
 // State Management & Telemetry UI Updates
@@ -2037,17 +2039,19 @@ async function executeAutonomousClientCommand(rawCmd) {
 const commandForm = document.getElementById("commandForm");
 const commandInput = document.getElementById("commandInput");
 
-commandForm.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const val = commandInput.value;
-  commandInput.value = "";
-  playSciFiBeep("execute");
-  if (canvas) {
-    const rect = canvas.getBoundingClientRect();
-    triggerShockwave(rect.width / 2, rect.height / 2, "#00f0ff");
-  }
-  sendCommand(val);
-});
+if (commandForm) {
+  commandForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const val = commandInput ? commandInput.value : "";
+    if (commandInput) commandInput.value = "";
+    playSciFiBeep("execute");
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      triggerShockwave(rect.width / 2, rect.height / 2, "#00f0ff");
+    }
+    sendCommand(val);
+  });
+}
 
 // Quick Action Chips
 document.querySelectorAll(".chip").forEach((chip) => {
@@ -2485,33 +2489,36 @@ const commsForm = document.getElementById("commsForm");
 const commRecipient = document.getElementById("commRecipient");
 const commMessage = document.getElementById("commMessage");
 
-commsForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const platform = document.querySelector('input[name="platform"]:checked').value;
-  const recipient = commRecipient.value.trim();
-  const message = commMessage.value.trim();
+if (commsForm) {
+  commsForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const platEl = document.querySelector('input[name="platform"]:checked');
+    const platform = platEl ? platEl.value : "whatsapp";
+    const recipient = commRecipient ? commRecipient.value.trim() : "";
+    const message = commMessage ? commMessage.value.trim() : "";
 
-  if (!recipient || !message) return;
+    if (!recipient || !message) return;
 
-  closeModals();
-  playSciFiBeep("execute");
-  addLogEntry("exec", `Transmitting to ${recipient} via ${platform.toUpperCase()}...`);
+    closeModals();
+    playSciFiBeep("execute");
+    addLogEntry("exec", `Transmitting to ${recipient} via ${platform.toUpperCase()}...`);
 
-  try {
-    const res = await fetch("/api/send_message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ platform, recipient, message }),
-    });
-    const data = await res.json();
-    addLogEntry("alex", data.response);
-    playAlexVoice(data.response);
-  } catch (err) {
-    addLogEntry("system", `Comms error: ${err.message}`);
-  }
+    try {
+      const res = await fetch("/api/send_message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform, recipient, message }),
+      });
+      const data = await res.json();
+      addLogEntry("alex", data.response);
+      playAlexVoice(data.response);
+    } catch (err) {
+      addLogEntry("system", `Comms error: ${err.message}`);
+    }
 
-  commMessage.value = "";
-});
+    if (commMessage) commMessage.value = "";
+  });
+}
 
 // -------------------------------------------------------------
 // Keyboard Shortcut Trigger: Space / Cmd+K
