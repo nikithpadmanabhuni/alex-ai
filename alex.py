@@ -226,7 +226,54 @@ def get_live_weather(query_location=""):
     return "Current weather telemetry: 24°C, mostly clear with mild ambient breeze."
 
 # ---------------------------------------------------------
-# Autonomous Alex Brain (DuckDuckGo + Wikipedia REST API)
+# OpenJarvis On-Device Personal AI Engine
+# ---------------------------------------------------------
+openjarvis_available = False
+try:
+    import openjarvis
+    openjarvis_available = True
+    print("[Alex] OpenJarvis on-device framework integrated successfully.")
+except Exception as e:
+    print(f"[Alex] OpenJarvis load notice: {e}")
+
+def query_openjarvis(prompt):
+    """
+    Direct on-device inference via OpenJarvis / Ollama local LLM daemon.
+    """
+    try:
+        model_name = "qwen2.5:0.5b"
+        try:
+            tags_req = urllib.request.Request("http://127.0.0.1:11434/api/tags")
+            with urllib.request.urlopen(tags_req, timeout=1.5) as tr:
+                tags_data = json.loads(tr.read().decode())
+                models = [m.get("name", "") for m in tags_data.get("models", []) if m.get("name")]
+                if models:
+                    model_name = models[0]
+        except Exception:
+            pass
+
+        req_data = json.dumps({
+            "model": model_name,
+            "prompt": f"You are Alex, an autonomous AI assistant powered by on-device intelligence. Give a direct, concise 2-sentence answer:\n\n{prompt}",
+            "stream": False,
+            "options": {"temperature": 0.3, "num_predict": 90}
+        }).encode("utf-8")
+        req = urllib.request.Request(
+            "http://127.0.0.1:11434/api/generate",
+            data=req_data,
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=6) as r:
+            res_json = json.loads(r.read().decode())
+            ans = res_json.get("response", "").strip()
+            if ans and len(ans) > 8:
+                return ans
+    except Exception:
+        pass
+    return None
+
+# ---------------------------------------------------------
+# Autonomous Alex Brain (OpenJarvis + DuckDuckGo + Wikipedia)
 # Direct answers without opening Chrome / Google tabs
 # ---------------------------------------------------------
 def ask_alex_brain(query):
@@ -235,6 +282,15 @@ def ask_alex_brain(query):
         if clean_q.lower().startswith(prefix):
             clean_q = clean_q[len(prefix):].strip()
             break
+
+    # 0. OpenJarvis Local On-Device AI inference
+    try:
+        oj_ans = query_openjarvis(clean_q)
+        if oj_ans and len(oj_ans.strip()) > 10:
+            sentences = re.split(r'(?<=[.!?])\s+', oj_ans.strip())
+            return " ".join(sentences[:2])
+    except Exception:
+        pass
 
     # 1. DuckDuckGo Instant Answer
     try:

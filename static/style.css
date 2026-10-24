@@ -77,6 +77,7 @@ body {
 }
 
 /* Master Container */
+.alex-container,
 .jarvis-container {
   display: flex;
   flex-direction: column;
@@ -1189,6 +1190,7 @@ body {
 /* COMPLETE AUTOMATIC RESPONSIVENESS (MOBILE & TABLET ADAPTATION) */
 /* ========================================================= */
 @media (max-width: 768px) {
+  .alex-container,
   .jarvis-container {
     padding: 8px 10px;
     gap: 8px;
