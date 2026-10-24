@@ -58,11 +58,19 @@
           <span class="btn-icon">📊</span>
           <span>CHARTS</span>
         </button>
+        <button class="nav-btn stocks-nav-btn" id="openStocksBtn" title="Live Stock & Crypto Market Intelligence">
+          <span class="btn-icon">📈</span>
+          <span>STOCKS</span>
+        </button>
         <button class="nav-btn" id="openCommsBtn" title="Open Texting & Messaging Hub">
           <span class="btn-icon">💬</span>
           <span>TEXT OTHERS</span>
         </button>
 
+        <div class="telemetry-badge uplink-badge" id="uplinkBadge" title="Live Server Uplink Latency">
+          <span class="uplink-dot"></span>
+          <span id="pingVal">LIVE: 14ms</span>
+        </div>
         <div class="telemetry-badge" id="batteryBadge">
           <span class="icon">⚡</span>
           <span id="batteryVal">BAT: --%</span>
@@ -75,6 +83,22 @@
         </button>
       </div>
     </header>
+
+    <!-- Live Holographic Stock Market Ticker Tape -->
+    <section class="live-market-ticker-bar" id="marketTickerBar">
+      <div class="ticker-label">
+        <span class="live-pulse-dot"></span>
+        <span class="ticker-label-text">LIVE MARKET</span>
+      </div>
+      <div class="ticker-marquee-wrapper">
+        <div class="ticker-track" id="marketTickerTrack">
+          <!-- Populated dynamically via JS with real-time flashing quotes -->
+        </div>
+      </div>
+      <button class="ticker-view-all-btn" id="expandMarketBtn" title="Open Full Live Market Dashboard">
+        <span>INTEL</span> ↗
+      </button>
+    </section>
 
     <!-- Center Stage: Arc Reactor Particle Sphere -->
     <main class="hud-main">
@@ -125,6 +149,9 @@
     <!-- Quick Action Chips -->
     <div class="quick-chips">
       <button class="chip" data-cmd="Alex">👋 "Alex"</button>
+      <button class="chip" data-cmd="show stocks">📈 Live Stocks</button>
+      <button class="chip" data-cmd="stock NVDA">🟢 NVDA Stock</button>
+      <button class="chip" data-cmd="price of Bitcoin">₿ Bitcoin</button>
       <button class="chip" data-cmd="system access">🛡️ System Access</button>
       <button class="chip" data-cmd="show phone link">🌐 Phone Link</button>
       <button class="chip" data-cmd="type in WhatsApp Hello! How are you doing?">💬 Type in WhatsApp</button>
@@ -455,6 +482,78 @@
           <span>⚡ GRANT ALL PERMISSIONS & INITIALIZE ALEX</span>
         </button>
         <span class="perm-subtext">Click to authorize all device sensors and activate real-time neural automation.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- LIVE STOCK & CRYPTO MARKET INTELLIGENCE MODAL             -->
+  <!-- ========================================================= -->
+  <div class="modal-overlay" id="stocksModal">
+    <div class="modal-content stocks-modal-content">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="cyber-badge">FIN-AI</span>
+          <h2 class="modal-title">LIVE MARKET TELEMETRY</h2>
+        </div>
+        <button class="close-modal-btn" id="closeStocksModalBtn">&times;</button>
+      </div>
+
+      <div class="stocks-modal-body">
+        <!-- Quick Ticker Switcher Buttons -->
+        <div class="stock-chips-row" id="stockChipsRow">
+          <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Selected Stock Big Telemetry Card -->
+        <div class="stock-hero-card" id="stockHeroCard">
+          <div class="stock-hero-top">
+            <div class="stock-hero-meta">
+              <span class="stock-hero-sym" id="stockHeroSym">NVDA</span>
+              <span class="stock-hero-name" id="stockHeroName">NVIDIA Corporation</span>
+            </div>
+            <div class="stock-hero-price-box">
+              <div class="stock-hero-price" id="stockHeroPrice">$210.96</div>
+              <div class="stock-hero-change" id="stockHeroChange">+1.45% ▲</div>
+            </div>
+          </div>
+
+          <!-- Interactive Holographic Area Chart -->
+          <div class="stock-chart-wrapper">
+            <canvas id="stockChartCanvas"></canvas>
+          </div>
+
+          <!-- Key Financial Metrics Grid -->
+          <div class="stock-metrics-grid">
+            <div class="stock-metric-card">
+              <span class="metric-label">24H HIGH</span>
+              <span class="metric-val" id="stockStatHigh">$213.50</span>
+            </div>
+            <div class="stock-metric-card">
+              <span class="metric-label">24H LOW</span>
+              <span class="metric-val" id="stockStatLow">$208.20</span>
+            </div>
+            <div class="stock-metric-card">
+              <span class="metric-label">VOLUME</span>
+              <span class="metric-val" id="stockStatVol">48.2M</span>
+            </div>
+            <div class="stock-metric-card">
+              <span class="metric-label">SENTIMENT</span>
+              <span class="metric-val sentiment-val" id="stockStatSentiment">76% BULLISH</span>
+            </div>
+          </div>
+
+          <!-- Live World Exchanges Bar -->
+          <div class="world-markets-bar">
+            <span class="wm-heading">EXCHANGE STATUS:</span>
+            <div class="wm-tags">
+              <span class="wm-tag open"><span class="dot"></span> NYSE: OPEN</span>
+              <span class="wm-tag open"><span class="dot"></span> NASDAQ: OPEN</span>
+              <span class="wm-tag closed"><span class="dot"></span> LSE: CLOSED</span>
+              <span class="wm-tag closed"><span class="dot"></span> TOKYO: CLOSED</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

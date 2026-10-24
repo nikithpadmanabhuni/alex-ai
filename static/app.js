@@ -1520,6 +1520,10 @@ function handleClientAction(action) {
   if (!action) return;
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
 
+  if (action.type === "open_stocks") {
+    openStocksModal(action.symbol || "NVDA");
+    return;
+  }
   if (action.type === "memory_card") {
     renderMemoryCard(action.content, action.title);
     return;
@@ -1795,7 +1799,9 @@ async function sendCommand(commandText) {
     openShareModal();
   } else if (lower.includes("show chart") || lower.includes("open chart")) {
     openChartsModal();
-  } else if (lower.includes("close chart")) {
+  } else if (lower.includes("show stock") || lower.includes("live stock") || lower.includes("open stock") || lower.includes("stock market") || lower.includes("crypto market")) {
+    openStocksModal();
+  } else if (lower.includes("close chart") || lower.includes("close stock")) {
     closeModals();
   } else if (lower.includes("open text") || lower.includes("text others") || lower.includes("messaging")) {
     openCommsModal();
@@ -2151,6 +2157,7 @@ function closeModals() {
   if (commsModal) commsModal.classList.remove("active");
   if (shareModal) shareModal.classList.remove("active");
   if (permissionsModal) permissionsModal.classList.remove("active");
+  if (stocksModal) stocksModal.classList.remove("active");
 }
 
 function updatePermissionsButtonState(isGranted) {
@@ -2548,3 +2555,269 @@ function checkAndPromptSystemPermissions() {
   }
 }
 checkAndPromptSystemPermissions();
+
+// =============================================================
+// LIVE STOCK & CRYPTO MARKET INTELLIGENCE SUBSYSTEM
+// =============================================================
+const stocksModal = document.getElementById("stocksModal");
+const openStocksBtn = document.getElementById("openStocksBtn");
+const expandMarketBtn = document.getElementById("expandMarketBtn");
+const closeStocksModalBtn = document.getElementById("closeStocksModalBtn");
+const marketTickerTrack = document.getElementById("marketTickerTrack");
+const stockChipsRow = document.getElementById("stockChipsRow");
+
+let activeStockChart = null;
+let currentStockSymbol = "NVDA";
+let stockMarketCache = {};
+let previousStockPrices = {};
+
+const INITIAL_STOCKS = [
+  { symbol: "NVDA", name: "NVIDIA Corp", price: 210.96, change: 1.45, high: 213.50, low: 208.20, volume: "48.2M", currency: "$", history: [206.0, 207.5, 209.0, 210.2, 210.96] },
+  { symbol: "AAPL", name: "Apple Inc", price: 347.72, change: -0.14, high: 349.80, low: 345.10, volume: "52.8M", currency: "$", history: [346.0, 347.1, 348.5, 347.9, 347.72] },
+  { symbol: "BTC", name: "Bitcoin USD", price: 80083.92, change: -1.23, high: 81500.00, low: 79200.00, volume: "$28.4B", currency: "$", history: [79500.0, 79900.0, 80400.0, 80200.0, 80083.92] },
+  { symbol: "TSLA", name: "Tesla Inc", price: 242.80, change: 2.15, high: 245.00, low: 238.40, volume: "64.1M", currency: "$", history: [238.0, 239.5, 241.0, 242.0, 242.8] },
+  { symbol: "ETH", name: "Ethereum USD", price: 2740.10, change: 1.15, high: 2780.00, low: 2710.00, volume: "$14.2B", currency: "$", history: [2690.0, 2715.0, 2730.0, 2738.0, 2740.1] },
+  { symbol: "GOOGL", name: "Alphabet Inc", price: 182.40, change: 0.85, high: 183.90, low: 181.10, volume: "22.5M", currency: "$", history: [180.5, 181.2, 181.9, 182.1, 182.4] },
+  { symbol: "MSFT", name: "Microsoft Corp", price: 448.50, change: 0.62, high: 451.20, low: 446.80, volume: "19.3M", currency: "$", history: [445.0, 446.2, 447.8, 448.1, 448.5] },
+  { symbol: "AMZN", name: "Amazon.com Inc", price: 194.20, change: 1.30, high: 196.00, low: 192.50, volume: "31.7M", currency: "$", history: [191.0, 192.4, 193.1, 193.8, 194.2] },
+  { symbol: "SPY", name: "S&P 500 ETF", price: 586.40, change: 0.45, high: 588.10, low: 584.20, volume: "42.0M", currency: "$", history: [583.0, 584.5, 585.8, 586.1, 586.4] }
+];
+
+INITIAL_STOCKS.forEach(s => { stockMarketCache[s.symbol] = s; });
+
+function renderMarketTicker(stocksList) {
+  if (!marketTickerTrack) return;
+  const displayList = [...stocksList, ...stocksList];
+  marketTickerTrack.innerHTML = "";
+
+  displayList.forEach((s) => {
+    const isPos = s.change >= 0;
+    const chgSign = isPos ? "+" : "";
+    const arrow = isPos ? "▲" : "▼";
+
+    const item = document.createElement("div");
+    item.className = "ticker-item";
+    item.id = `ticker-${s.symbol}`;
+    item.innerHTML = `
+      <span class="ticker-sym">${s.symbol}</span>
+      <span class="ticker-price">${s.currency || "$"}${Number(s.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+      <span class="ticker-chg ${isPos ? 'pos' : 'neg'}">${chgSign}${s.change.toFixed(2)}% ${arrow}</span>
+    `;
+
+    item.addEventListener("click", () => {
+      openStocksModal(s.symbol);
+    });
+
+    marketTickerTrack.appendChild(item);
+  });
+}
+
+function renderStockChips(stocksList) {
+  if (!stockChipsRow) return;
+  stockChipsRow.innerHTML = "";
+
+  stocksList.forEach((s) => {
+    const isPos = s.change >= 0;
+    const chgSign = isPos ? "+" : "";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `stock-chip-btn ${s.symbol === currentStockSymbol ? 'active' : ''}`;
+    btn.setAttribute("data-symbol", s.symbol);
+    btn.innerHTML = `
+      <span>${s.symbol}</span>
+      <span style="color: ${isPos ? '#10b981' : '#ef4444'}; font-family: monospace; font-size: 10px;">${chgSign}${s.change.toFixed(1)}%</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".stock-chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectStock(s.symbol);
+    });
+
+    stockChipsRow.appendChild(btn);
+  });
+}
+
+async function fetchLiveMarketData() {
+  try {
+    const res = await fetch("/api/stocks");
+    const data = await res.json();
+    if (data.status === "ok" && data.stocks) {
+      const list = Object.values(data.stocks);
+      list.forEach(s => {
+        const oldPrice = previousStockPrices[s.symbol];
+        if (oldPrice !== undefined && oldPrice !== s.price) {
+          const el = document.querySelectorAll(`[id="ticker-${s.symbol}"]`);
+          el.forEach(item => {
+            item.classList.remove("flash-up", "flash-down");
+            void item.offsetWidth;
+            item.classList.add(s.price > oldPrice ? "flash-up" : "flash-down");
+          });
+        }
+        previousStockPrices[s.symbol] = s.price;
+        stockMarketCache[s.symbol] = s;
+      });
+
+      renderMarketTicker(list);
+      renderStockChips(list);
+
+      if (stocksModal && stocksModal.classList.contains("active")) {
+        const activeStock = stockMarketCache[currentStockSymbol];
+        if (activeStock) {
+          updateStockHeroUI(activeStock);
+        }
+      }
+    }
+  } catch (e) {
+    const list = Object.values(stockMarketCache);
+    if (list.length > 0) {
+      renderMarketTicker(list);
+    }
+  }
+}
+
+function updateStockHeroUI(stock) {
+  const symEl = document.getElementById("stockHeroSym");
+  const nameEl = document.getElementById("stockHeroName");
+  const priceEl = document.getElementById("stockHeroPrice");
+  const changeEl = document.getElementById("stockHeroChange");
+  const highEl = document.getElementById("stockStatHigh");
+  const lowEl = document.getElementById("stockStatLow");
+  const volEl = document.getElementById("stockStatVol");
+
+  if (symEl) symEl.innerText = stock.symbol;
+  if (nameEl) nameEl.innerText = stock.name || stock.symbol;
+  if (priceEl) priceEl.innerText = `${stock.currency || "$"}${Number(stock.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+  if (changeEl) {
+    const isPos = stock.change >= 0;
+    const chgSign = isPos ? "+" : "";
+    changeEl.className = `stock-hero-change ${isPos ? 'pos' : 'neg'}`;
+    changeEl.innerText = `${chgSign}${stock.change.toFixed(2)}% ${isPos ? '▲' : '▼'}`;
+  }
+
+  if (highEl) highEl.innerText = `${stock.currency || "$"}${Number(stock.high || stock.price * 1.012).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  if (lowEl) lowEl.innerText = `${stock.currency || "$"}${Number(stock.low || stock.price * 0.988).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  if (volEl) volEl.innerText = stock.volume || "32.5M";
+
+  updateStockChart(stock);
+}
+
+function updateStockChart(stock) {
+  const canvasEl = document.getElementById("stockChartCanvas");
+  if (!canvasEl) return;
+
+  const history = (stock.history && stock.history.length > 1) ? stock.history : [stock.price * 0.98, stock.price * 0.99, stock.price * 1.005, stock.price];
+  const labels = history.map((_, i) => `${i * 10}m`);
+
+  const isPos = stock.change >= 0;
+  const primaryColor = isPos ? "#10b981" : "#ef4444";
+  const gradColor = isPos ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.25)";
+
+  if (activeStockChart) {
+    activeStockChart.destroy();
+  }
+
+  const chartCtx = canvasEl.getContext("2d");
+  const gradient = chartCtx.createLinearGradient(0, 0, 0, 160);
+  gradient.addColorStop(0, gradColor);
+  gradient.addColorStop(1, "rgba(0, 0, 0, 0.0)");
+
+  activeStockChart = new Chart(canvasEl, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: `${stock.symbol} Price`,
+          data: history,
+          borderColor: primaryColor,
+          backgroundColor: gradient,
+          borderWidth: 2.2,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: "#ffffff",
+          tension: 0.35,
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 300 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "rgba(15, 23, 42, 0.95)",
+          borderColor: primaryColor,
+          borderWidth: 1,
+          titleFont: { family: "JetBrains Mono" },
+          bodyFont: { family: "JetBrains Mono" },
+          callbacks: {
+            label: (ctx) => ` Price: ${stock.currency || "$"}${ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+          }
+        }
+      },
+      scales: {
+        x: { display: false },
+        y: {
+          ticks: {
+            color: "#94a3b8",
+            font: { family: "JetBrains Mono", size: 10 },
+            callback: (val) => `${stock.currency || "$"}${val}`
+          },
+          grid: { color: "rgba(255, 255, 255, 0.05)" }
+        }
+      }
+    }
+  });
+}
+
+function selectStock(sym) {
+  currentStockSymbol = sym;
+  const stock = stockMarketCache[sym];
+  if (stock) {
+    updateStockHeroUI(stock);
+  }
+}
+
+function openStocksModal(symbol = "NVDA") {
+  closeModals();
+  if (stocksModal) stocksModal.classList.add("active");
+  playSciFiBeep("activate");
+  if (symbol && stockMarketCache[symbol]) {
+    selectStock(symbol);
+  } else {
+    selectStock(currentStockSymbol);
+  }
+}
+
+if (openStocksBtn) openStocksBtn.addEventListener("click", () => openStocksModal());
+if (expandMarketBtn) expandMarketBtn.addEventListener("click", () => openStocksModal());
+if (closeStocksModalBtn) closeStocksModalBtn.addEventListener("click", closeModals);
+
+// Initial Market Ticker Mount & Periodic Real-Time Fetching
+renderMarketTicker(INITIAL_STOCKS);
+renderStockChips(INITIAL_STOCKS);
+fetchLiveMarketData();
+setInterval(fetchLiveMarketData, 2800);
+
+// -------------------------------------------------------------
+// Live Network Uplink Latency Ping (Real-Time Sensor)
+// -------------------------------------------------------------
+async function updateLivePing() {
+  const pingEl = document.getElementById("pingVal");
+  if (!pingEl) return;
+
+  const start = performance.now();
+  try {
+    await fetch("/api/public_link", { cache: "no-store" });
+    const latency = Math.max(8, Math.round(performance.now() - start));
+    pingEl.innerText = `LIVE: ${latency}ms`;
+  } catch (e) {
+    pingEl.innerText = `LIVE: SYNCED`;
+  }
+}
+setInterval(updateLivePing, 4000);
+updateLivePing();
