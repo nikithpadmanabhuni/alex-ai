@@ -254,16 +254,34 @@
       <!-- MIDDLE: ALEX IN MIDDLE CIRCLE (ANIMATED & SIMPLE)         -->
       <!-- ========================================================= -->
       <main class="hud-panel hud-center-stage" id="hudCenterStage">
-        <!-- Animated Middle Circle Stage with Cybernetic Graticules -->
-        <div class="alex-middle-circle-container">
-          <!-- Multi-Layered Rotating Astrolabe Cyber Rings with Hacker Graticules -->
+        <!-- Animated Middle Circle Stage with Multi-Tier Cybernetic Astrolabe -->
+        <div class="alex-middle-circle-container" id="alexMiddleCircleContainer" title="Click to Talk to Alex">
+          <!-- Ring 1: Outer Cardinal Orbital Ring with 8 Degree Graticules and Satellites -->
           <div class="cyber-orbit-ring ring-outer">
             <span class="graticule-deg deg-0">000°</span>
+            <span class="graticule-deg deg-45">045°</span>
             <span class="graticule-deg deg-90">090°</span>
+            <span class="graticule-deg deg-135">135°</span>
             <span class="graticule-deg deg-180">180°</span>
+            <span class="graticule-deg deg-225">225°</span>
             <span class="graticule-deg deg-270">270°</span>
+            <span class="graticule-deg deg-315">315°</span>
+            <span class="orbital-satellite sat-1"></span>
+            <span class="orbital-satellite sat-2"></span>
           </div>
-          <div class="cyber-orbit-ring ring-middle"></div>
+
+          <!-- Ring 2: Segmented Cyber Tech Brackets -->
+          <div class="cyber-orbit-ring ring-segmented">
+            <span class="bracket-tag tag-top">[ SYS_ACTV ]</span>
+            <span class="bracket-tag tag-right">[ 0x7F4A ]</span>
+            <span class="bracket-tag tag-bottom">[ Q-CORE ]</span>
+            <span class="bracket-tag tag-left">[ 256-BIT ]</span>
+          </div>
+
+          <!-- Ring 3: Counter-Rotating Fine Chronometer Bezel -->
+          <div class="cyber-orbit-ring ring-chrono"></div>
+
+          <!-- Ring 4: Harmonic Neon Plasma Containment -->
           <div class="cyber-orbit-ring ring-inner"></div>
 
           <!-- Quantum Particle Reactor Canvas -->
@@ -272,9 +290,14 @@
           <!-- Middle Holographic Core Disc -->
           <div class="alex-core-disc" id="alexCoreDisc">
             <div class="core-radial-pulse"></div>
+            <div class="core-aperture-iris"></div>
+            <div class="core-hud-bracket left">[</div>
+            <div class="core-hud-bracket right">]</div>
+            
             <div class="core-brand-name">A.L.E.X.</div>
+            <div class="core-neural-subtitle">QUANTUM NEURAL CORE</div>
             <div class="core-status-tag" id="coreStatus">ROOT: ARMED & READY</div>
-            <div class="core-freq-indicator" id="coreFrequency">84.2 GHz</div>
+            <div class="core-freq-indicator" id="coreFrequency">84.2 GHz • FLUX: 99.8%</div>
           </div>
         </div>
 

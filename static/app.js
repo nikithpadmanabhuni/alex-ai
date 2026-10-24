@@ -798,7 +798,7 @@ function animate(time) {
   const rect = canvas.getBoundingClientRect();
   const centerX = rect.width / 2;
   const centerY = rect.height / 2;
-  const autoScale = Math.max(0.65, Math.min(1.0, Math.min(rect.width, rect.height) / 280));
+  const autoScale = Math.max(0.75, Math.min(rect.width, rect.height) / 260);
 
   // Smooth tilt lerp
   tilt.x += (tilt.targetX - tilt.x) * 0.08;
@@ -870,6 +870,37 @@ function animateWaveform(time) {
   });
 }
 
+function handleCircleActivation(e) {
+  unlockAudio();
+  if (canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e && e.clientX ? (e.clientX - rect.left) : (rect.width / 2);
+    const clickY = e && e.clientY ? (e.clientY - rect.top) : (rect.height / 2);
+    triggerShockwave(clickX, clickY, "#00ff66");
+  }
+  if (isVoiceActive) {
+    stopVoiceSession();
+  } else {
+    startVoiceSession();
+  }
+}
+
+const alexMiddleCircleContainer = document.getElementById("alexMiddleCircleContainer");
+const alexCoreDisc = document.getElementById("alexCoreDisc");
+
+if (alexCoreDisc) {
+  alexCoreDisc.addEventListener("click", (e) => {
+    e.stopPropagation();
+    handleCircleActivation(e);
+  });
+}
+
+if (alexMiddleCircleContainer) {
+  alexMiddleCircleContainer.addEventListener("click", (e) => {
+    handleCircleActivation(e);
+  });
+}
+
 if (canvas) {
   canvas.addEventListener("mousemove", (e) => {
     const rect = canvas.getBoundingClientRect();
@@ -882,16 +913,7 @@ if (canvas) {
   });
 
   canvas.addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-    triggerShockwave(clickX, clickY, "#00f0ff");
-    unlockAudio();
-    if (isVoiceActive) {
-      stopVoiceSession();
-    } else {
-      startVoiceSession();
-    }
+    handleCircleActivation(e);
   });
 }
 
@@ -906,20 +928,32 @@ const feedLog = document.getElementById("feedLog");
 
 function setAppState(state, msg) {
   appState = state;
-  statusPill.className = `status-pill ${state}`;
+  if (statusPill) statusPill.className = `status-pill ${state}`;
 
-  if (state === "listening") {
-    statusText.innerText = msg || "ALEX ONLINE // LISTENING";
-    coreStatus.innerText = "ACTIVE";
-    coreStatus.style.color = "#00f0ff";
+  if (state === "idle") {
+    if (statusText) statusText.innerText = msg || "ROOT: ARMED & READY";
+    if (coreStatus) {
+      coreStatus.innerText = "ROOT: ARMED & READY";
+      coreStatus.style.color = "var(--hacker-green)";
+    }
+  } else if (state === "listening") {
+    if (statusText) statusText.innerText = msg || "ALEX ONLINE // LISTENING";
+    if (coreStatus) {
+      coreStatus.innerText = "ACTIVE LISTENING";
+      coreStatus.style.color = "#00f0ff";
+    }
   } else if (state === "recognizing") {
-    statusText.innerText = msg || "PROCESSING COMMAND...";
-    coreStatus.innerText = "ANALYZING";
-    coreStatus.style.color = "#f59e0b";
+    if (statusText) statusText.innerText = msg || "PROCESSING COMMAND...";
+    if (coreStatus) {
+      coreStatus.innerText = "ANALYZING NEURAL DATA";
+      coreStatus.style.color = "#f59e0b";
+    }
   } else if (state === "speaking") {
-    statusText.innerText = msg || "ALEX RESPONDING...";
-    coreStatus.innerText = "SPEAKING";
-    coreStatus.style.color = "#a855f7";
+    if (statusText) statusText.innerText = msg || "ALEX RESPONDING...";
+    if (coreStatus) {
+      coreStatus.innerText = "TRANSMITTING RESPONSE";
+      coreStatus.style.color = "#a855f7";
+    }
   }
 
   const talkBtn = document.getElementById("mobileMicBtn");
@@ -935,7 +969,10 @@ function setAppState(state, msg) {
   }
 
   coreFrequency = (82.0 + Math.random() * 8.0).toFixed(1);
-  coreFrequencyEl.innerText = `${coreFrequency} GHz`;
+  if (coreFrequencyEl) {
+    const flux = (98.5 + Math.random() * 1.4).toFixed(1);
+    coreFrequencyEl.innerText = `${coreFrequency} GHz • FLUX: ${flux}%`;
+  }
 }
 
 function addLogEntry(role, text) {

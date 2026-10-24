@@ -2741,13 +2741,19 @@ html, body {
 
 /* Middle Circle Container */
 .alex-middle-circle-container {
-  width: 250px;
-  height: 250px;
+  width: clamp(310px, 34vw, 385px);
+  height: clamp(310px, 34vw, 385px);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.alex-middle-circle-container:hover {
+  transform: scale(1.02);
 }
 
 /* Multi-Layered Rotating Astrolabe Cyber Rings */
@@ -2757,42 +2763,117 @@ html, body {
   pointer-events: none;
 }
 
+/* Ring 1: Outer Cardinal Orbital Ring */
 .ring-outer {
   width: 100%;
   height: 100%;
   border: 1.5px dashed rgba(0, 255, 102, 0.65);
-  animation: orbitRotateClockwise 28s linear infinite;
-  box-shadow: 0 0 24px rgba(0, 255, 102, 0.3), inset 0 0 20px rgba(0, 240, 255, 0.1);
+  animation: orbitRotateClockwise 36s linear infinite;
+  box-shadow: 0 0 28px rgba(0, 255, 102, 0.3), inset 0 0 24px rgba(0, 240, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Hacker Degree Graticules */
+/* 8 Hacker Degree Graticules */
 .graticule-deg {
   position: absolute;
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 700;
+  font-size: 8.5px;
+  font-weight: 800;
   color: var(--hacker-green);
-  text-shadow: 0 0 6px var(--hacker-green-glow);
+  text-shadow: 0 0 8px var(--hacker-green-glow);
+  letter-spacing: 0.5px;
+  pointer-events: none;
+  background: rgba(6, 11, 25, 0.7);
+  padding: 1px 3.5px;
+  border-radius: 2px;
+}
+.deg-0   { top: 5px; left: 50%; transform: translateX(-50%); }
+.deg-45  { top: 12.5%; right: 12.5%; }
+.deg-90  { right: 5px; top: 50%; transform: translateY(-50%); }
+.deg-135 { bottom: 12.5%; right: 12.5%; }
+.deg-180 { bottom: 5px; left: 50%; transform: translateX(-50%); }
+.deg-225 { bottom: 12.5%; left: 12.5%; }
+.deg-270 { left: 5px; top: 50%; transform: translateY(-50%); }
+.deg-315 { top: 12.5%; left: 12.5%; }
+
+/* Orbital Satellites */
+.orbital-satellite {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #00ffff;
+  box-shadow: 0 0 12px #00ffff, 0 0 20px rgba(0, 255, 102, 0.8);
   pointer-events: none;
 }
-.deg-0 { top: 4px; left: 50%; transform: translateX(-50%); }
-.deg-90 { right: 4px; top: 50%; transform: translateY(-50%); }
-.deg-180 { bottom: 4px; left: 50%; transform: translateX(-50%); }
-.deg-270 { left: 4px; top: 50%; transform: translateY(-50%); }
-
-.ring-middle {
-  width: 86%;
-  height: 86%;
-  border: 1.5px dotted rgba(0, 240, 255, 0.6);
-  animation: orbitRotateCounter 18s linear infinite;
-  box-shadow: 0 0 16px rgba(0, 240, 255, 0.2);
+.sat-1 {
+  top: -4.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 1.5px solid #ffffff;
+}
+.sat-2 {
+  bottom: -4.5px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--hacker-green);
+  box-shadow: 0 0 12px var(--hacker-green), 0 0 20px #00ffff;
+  border: 1.5px solid #ffffff;
 }
 
+/* Ring 2: Segmented Cyber Tech Brackets */
+.ring-segmented {
+  width: 87%;
+  height: 87%;
+  border: 1px dashed rgba(0, 240, 255, 0.5);
+  animation: orbitRotateCounter 26s linear infinite;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bracket-tag {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  color: var(--cyan-glow);
+  text-shadow: 0 0 6px var(--cyan-glow);
+  background: rgba(6, 11, 25, 0.88);
+  padding: 1.5px 5px;
+  border-radius: 3px;
+  letter-spacing: 1px;
+  border: 0.5px solid rgba(0, 240, 255, 0.35);
+  pointer-events: none;
+}
+.tag-top    { top: -7px; left: 50%; transform: translateX(-50%); }
+.tag-right  { right: -12px; top: 50%; transform: translateY(-50%); }
+.tag-bottom { bottom: -7px; left: 50%; transform: translateX(-50%); }
+.tag-left   { left: -12px; top: 50%; transform: translateY(-50%); }
+
+/* Ring 3: Counter-Rotating Fine Chronometer Bezel */
+.ring-chrono {
+  width: 76%;
+  height: 76%;
+  border: 1.5px solid rgba(0, 255, 102, 0.35);
+  border-top-color: var(--hacker-green);
+  border-bottom-color: var(--cyan-glow);
+  border-left-color: transparent;
+  border-right-color: transparent;
+  animation: orbitRotateClockwise 16s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  box-shadow: inset 0 0 16px rgba(0, 255, 102, 0.18);
+}
+
+/* Ring 4: Harmonic Neon Plasma Containment */
 .ring-inner {
-  width: 72%;
-  height: 72%;
-  border: 1px solid rgba(0, 255, 102, 0.45);
+  width: 65%;
+  height: 65%;
+  border: 1.5px dotted rgba(0, 255, 102, 0.55);
   animation: coreRadialBreathing 3.5s ease-in-out infinite alternate;
+  box-shadow: 0 0 14px rgba(0, 255, 102, 0.2);
 }
 
 @keyframes orbitRotateClockwise {
@@ -2806,8 +2887,8 @@ html, body {
 }
 
 @keyframes coreRadialBreathing {
-  0% { transform: scale(0.97); opacity: 0.6; }
-  100% { transform: scale(1.03); opacity: 1; }
+  0% { transform: scale(0.96); opacity: 0.65; }
+  100% { transform: scale(1.04); opacity: 1; }
 }
 
 /* Particle Canvas Inside/Over Middle Circle */
@@ -2822,34 +2903,43 @@ html, body {
   pointer-events: none;
 }
 
-/* Central Glowing Core Disc */
+/* Middle Holographic Core Disc */
 .alex-core-disc {
-  width: 130px;
-  height: 130px;
+  width: clamp(165px, 18vw, 195px);
+  height: clamp(165px, 18vw, 195px);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(0, 255, 102, 0.25) 0%, rgba(6, 11, 25, 0.95) 75%);
-  border: 1.5px solid var(--hacker-green);
+  background: radial-gradient(circle, rgba(0, 255, 102, 0.28) 0%, rgba(10, 18, 38, 0.96) 72%);
+  border: 2px solid var(--hacker-green);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 35px var(--hacker-green-glow), inset 0 0 20px rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 45px var(--hacker-green-glow), inset 0 0 32px rgba(0, 240, 255, 0.35);
   position: relative;
   z-index: 5;
   text-align: center;
   animation: coreDiscPulse 3s infinite alternate ease-in-out;
   cursor: pointer;
-  transition: all 0.3s ease;
+  user-select: none;
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.35s ease;
+  padding: 12px;
 }
 
+.alex-middle-circle-container:hover .alex-core-disc,
 .alex-core-disc:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 50px rgba(0, 255, 102, 0.7);
+  transform: scale(1.06);
+  box-shadow: 0 0 65px rgba(0, 255, 102, 0.85), inset 0 0 40px rgba(0, 240, 255, 0.55);
 }
 
 @keyframes coreDiscPulse {
-  0% { box-shadow: 0 0 28px rgba(0, 255, 102, 0.45); border-color: var(--hacker-green); }
-  100% { box-shadow: 0 0 45px rgba(0, 240, 255, 0.65); border-color: var(--cyan-glow); }
+  0% {
+    box-shadow: 0 0 35px rgba(0, 255, 102, 0.5), inset 0 0 25px rgba(0, 240, 255, 0.25);
+    border-color: var(--hacker-green);
+  }
+  100% {
+    box-shadow: 0 0 55px rgba(0, 240, 255, 0.7), inset 0 0 38px rgba(0, 255, 102, 0.35);
+    border-color: var(--cyan-glow);
+  }
 }
 
 .core-radial-pulse {
@@ -2858,38 +2948,91 @@ html, body {
   height: 100%;
   border-radius: 50%;
   border: 1px solid var(--hacker-green);
-  animation: pulseCoreRipple 2s infinite ease-out;
+  animation: pulseCoreRipple 2.2s infinite ease-out;
   pointer-events: none;
 }
 
 @keyframes pulseCoreRipple {
-  0% { transform: scale(1); opacity: 0.8; }
-  100% { transform: scale(1.45); opacity: 0; }
+  0% { transform: scale(1); opacity: 0.85; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+
+/* Core Aperture Iris */
+.core-aperture-iris {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0, 240, 255, 0.4);
+  animation: orbitRotateCounter 32s linear infinite;
+  pointer-events: none;
+}
+
+/* Core HUD Brackets */
+.core-hud-bracket {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 300;
+  color: rgba(0, 255, 102, 0.35);
+  pointer-events: none;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+.core-hud-bracket.left { left: 8px; }
+.core-hud-bracket.right { right: 8px; }
+
+.alex-core-disc:hover .core-hud-bracket {
+  color: var(--cyan-glow);
+  text-shadow: 0 0 10px var(--cyan-glow);
 }
 
 .core-brand-name {
   font-family: var(--font-display);
-  font-size: 19px;
+  font-size: 26px;
   font-weight: 900;
-  letter-spacing: 3px;
+  letter-spacing: 4px;
   color: #ffffff;
-  text-shadow: 0 0 14px var(--hacker-green-glow);
+  text-shadow: 0 0 18px var(--hacker-green-glow), 0 0 32px rgba(0, 255, 102, 0.6);
+  line-height: 1.1;
+  position: relative;
+  z-index: 6;
+}
+
+.core-neural-subtitle {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 2.2px;
+  color: var(--cyan-glow);
+  text-shadow: 0 0 8px var(--cyan-glow);
+  margin-top: 3px;
+  margin-bottom: 3px;
+  position: relative;
+  z-index: 6;
 }
 
 .core-status-tag {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
+  font-size: 9.5px;
+  font-weight: 800;
   color: var(--hacker-green);
-  margin-top: 2px;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
+  text-shadow: 0 0 8px var(--hacker-green-glow);
+  position: relative;
+  z-index: 6;
 }
 
 .core-freq-indicator {
   font-family: var(--font-mono);
   font-size: 8px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 1px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.8px;
+  margin-top: 3px;
+  position: relative;
+  z-index: 6;
 }
 
 /* Voice Equalizer Waveform in Middle */
@@ -3685,16 +3828,16 @@ html, body {
   }
 
   .alex-middle-circle-container {
-    width: 220px;
-    height: 220px;
+    width: clamp(260px, 72vw, 310px);
+    height: clamp(260px, 72vw, 310px);
   }
 
   .alex-core-disc {
-    width: 115px;
-    height: 115px;
+    width: clamp(140px, 36vw, 155px);
+    height: clamp(140px, 36vw, 155px);
   }
 
   .core-brand-name {
-    font-size: 17px;
+    font-size: 22px;
   }
 }
