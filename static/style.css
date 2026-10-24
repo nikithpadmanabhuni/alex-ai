@@ -2741,8 +2741,8 @@ html, body {
 
 /* Middle Circle Container */
 .alex-middle-circle-container {
-  width: clamp(310px, 34vw, 385px);
-  height: clamp(310px, 34vw, 385px);
+  width: clamp(280px, min(34vw, 38vh), 380px);
+  height: clamp(280px, min(34vw, 38vh), 380px);
   position: relative;
   display: flex;
   align-items: center;
@@ -2905,8 +2905,8 @@ html, body {
 
 /* Middle Holographic Core Disc */
 .alex-core-disc {
-  width: clamp(165px, 18vw, 195px);
-  height: clamp(165px, 18vw, 195px);
+  width: clamp(155px, min(18vw, 20vh), 195px);
+  height: clamp(155px, min(18vw, 20vh), 195px);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(0, 255, 102, 0.28) 0%, rgba(10, 18, 38, 0.96) 72%);
   border: 2px solid var(--hacker-green);

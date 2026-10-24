@@ -2187,6 +2187,9 @@ function setPublicLink(url, localIp) {
     if (openPhoneLinkAnchor) openPhoneLinkAnchor.href = url;
     if (shareQrCode) {
       shareQrCode.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(url)}&bgcolor=070d18&color=00f0ff&margin=1`;
+      shareQrCode.onerror = () => {
+        shareQrCode.src = `https://quickchart.io/qr?text=${encodeURIComponent(url)}&size=250`;
+      };
     }
     if (tunnelStatusText) tunnelStatusText.innerText = "SECURE PUBLIC CLOUDFLARE HTTPS TUNNEL ACTIVE";
   }
@@ -2402,6 +2405,10 @@ let activeChartType = "system";
 function initChart(type) {
   const chartCanvas = document.getElementById("analyticsChart");
   if (!chartCanvas) return;
+  if (typeof Chart === "undefined") {
+    console.warn("Chart.js not loaded yet");
+    return;
+  }
 
   activeChartType = type;
   if (activeChart) {
@@ -2982,6 +2989,7 @@ function updateStockHeroUI(stock) {
 }
 
 function updateStockChart(stock) {
+  if (typeof Chart === "undefined" || !stock) return;
   const history = (stock.history && stock.history.length > 1) ? stock.history : [stock.price * 0.98, stock.price * 0.99, stock.price * 1.005, stock.price];
   const labels = history.map((_, i) => `${i * 10}m`);
   const isPos = stock.change >= 0;
@@ -3104,9 +3112,32 @@ function updateStockChart(stock) {
   }
 }
 
-function selectStock(sym) {
+async function selectStock(sym) {
+  if (!sym) return;
   currentStockSymbol = sym;
-  const stock = stockMarketCache[sym];
+
+  // Sync active states on all stock chip buttons
+  document.querySelectorAll(".stock-chip-btn, .comp-chip-btn").forEach(btn => {
+    if (btn.getAttribute("data-symbol") === sym) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+    }
+  });
+
+  let stock = stockMarketCache[sym];
+  if (!stock) {
+    try {
+      const res = await fetch(`/api/stocks?symbol=${encodeURIComponent(sym)}`);
+      const data = await res.json();
+      if (data && data.stock) {
+        stock = data.stock;
+        stockMarketCache[sym] = stock;
+      }
+    } catch (e) {
+      console.log("Error fetching stock:", e);
+    }
+  }
   if (stock) {
     updateStockHeroUI(stock);
   }
