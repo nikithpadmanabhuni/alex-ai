@@ -21,13 +21,15 @@ const telemetryHistory = {
 
 // Canvas Resolution
 function resizeCanvas() {
+  if (!canvas) return;
   const rect = canvas.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
+  canvas.width = Math.floor(rect.width * dpr);
+  canvas.height = Math.floor(rect.height * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 window.addEventListener("resize", resizeCanvas);
+setTimeout(resizeCanvas, 50);
 
 // -------------------------------------------------------------
 // Web Audio API: Live Microphone Audio Level & Reactive Core
@@ -113,26 +115,46 @@ window.addEventListener("deviceorientation", (e) => {
 });
 
 // -------------------------------------------------------------
-// Dynamic Energy Shockwaves (Audio & Command Reactive)
+// Dynamic Energy Shockwaves & Spark Embers (Audio & Touch Reactive)
 // -------------------------------------------------------------
 const shockwaves = [];
+const sparks = [];
+
 function triggerShockwave(x, y, color = "#00f0ff") {
   shockwaves.push({
     x: x,
     y: y,
-    radius: 10,
-    maxRadius: 240,
-    speed: 5.2,
+    radius: 8,
+    maxRadius: 260,
+    speed: 5.6,
     alpha: 0.95,
     color: color,
   });
+
+  // Spawn kinetic particle spark embers
+  const sparkCount = 18;
+  for (let i = 0; i < sparkCount; i++) {
+    const angle = (Math.PI * 2 * i) / sparkCount + (Math.random() - 0.5) * 0.4;
+    const speed = 2.0 + Math.random() * 4.8;
+    sparks.push({
+      x: x,
+      y: y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      size: 1.2 + Math.random() * 2.2,
+      alpha: 1.0,
+      decay: 0.022 + Math.random() * 0.025,
+      color: color,
+    });
+  }
 }
 
 function updateAndDrawShockwaves(centerX, centerY) {
+  // 1. Expanding shockwave rings
   for (let i = shockwaves.length - 1; i >= 0; i--) {
     const sw = shockwaves[i];
     sw.radius += sw.speed;
-    sw.alpha *= 0.94;
+    sw.alpha *= 0.945;
 
     if (sw.alpha < 0.02 || sw.radius > sw.maxRadius) {
       shockwaves.splice(i, 1);
@@ -140,30 +162,114 @@ function updateAndDrawShockwaves(centerX, centerY) {
     }
 
     ctx.save();
+    // Primary shockwave
     ctx.beginPath();
     ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI * 2);
     ctx.strokeStyle = sw.color;
-    ctx.lineWidth = 2.5 * sw.alpha;
+    ctx.lineWidth = 2.6 * sw.alpha;
     ctx.shadowColor = sw.color;
     ctx.shadowBlur = 18;
     ctx.globalAlpha = sw.alpha;
     ctx.stroke();
 
-    // Inner chromatic resonance ring
+    // Secondary inner chromatic resonance ring
     ctx.beginPath();
-    ctx.arc(sw.x, sw.y, Math.max(1, sw.radius - 8), 0, Math.PI * 2);
+    ctx.arc(sw.x, sw.y, Math.max(1, sw.radius - 9), 0, Math.PI * 2);
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 1.0 * sw.alpha;
-    ctx.globalAlpha = sw.alpha * 0.7;
+    ctx.lineWidth = 1.2 * sw.alpha;
+    ctx.globalAlpha = sw.alpha * 0.75;
+    ctx.stroke();
+
+    // Tertiary outer pulse ripple
+    ctx.beginPath();
+    ctx.arc(sw.x, sw.y, Math.max(1, sw.radius * 0.65), 0, Math.PI * 2);
+    ctx.strokeStyle = sw.color;
+    ctx.lineWidth = 0.8 * sw.alpha;
+    ctx.globalAlpha = sw.alpha * 0.45;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 2. Kinetic spark embers
+  for (let i = sparks.length - 1; i >= 0; i--) {
+    const sp = sparks[i];
+    sp.x += sp.vx;
+    sp.y += sp.vy;
+    sp.vx *= 0.96;
+    sp.vy *= 0.96;
+    sp.alpha -= sp.decay;
+
+    if (sp.alpha <= 0.02) {
+      sparks.splice(i, 1);
+      continue;
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(sp.x, sp.y);
+    ctx.lineTo(sp.x - sp.vx * 2.5, sp.y - sp.vy * 2.5);
+    ctx.strokeStyle = sp.color;
+    ctx.lineWidth = sp.size * sp.alpha;
+    ctx.shadowColor = sp.color;
+    ctx.shadowBlur = 8;
+    ctx.globalAlpha = sp.alpha;
     ctx.stroke();
     ctx.restore();
   }
 }
 
 // -------------------------------------------------------------
+// Ambient Quantum Nano-Photons (Background Depth Layer)
+// -------------------------------------------------------------
+class AmbientPhoton {
+  constructor(w, h) {
+    this.reset(w, h, true);
+  }
+
+  reset(w, h, randomizeY = false) {
+    this.x = Math.random() * (w || 400);
+    this.y = randomizeY ? Math.random() * (h || 280) : (h || 280) + 12;
+    this.speedY = 0.2 + Math.random() * 0.55;
+    this.speedX = (Math.random() - 0.5) * 0.28;
+    this.size = 0.8 + Math.random() * 1.6;
+    this.baseAlpha = 0.18 + Math.random() * 0.45;
+    this.alpha = this.baseAlpha;
+    this.phase = Math.random() * Math.PI * 2;
+    const colors = ["#00f0ff", "#38bdf8", "#818cf8", "#a855f7"];
+    this.color = colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  update(w, h, time) {
+    this.y -= this.speedY;
+    this.x += this.speedX + Math.sin(time * 0.0016 + this.phase) * 0.3;
+    this.alpha = this.baseAlpha * (0.6 + Math.sin(time * 0.003 + this.phase) * 0.4);
+    if (this.y < -12 || this.x < -15 || this.x > (w || 400) + 15) {
+      this.reset(w, h, false);
+    }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = this.color;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 6;
+    ctx.globalAlpha = Math.max(0.05, Math.min(1.0, this.alpha));
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+const ambientPhotons = [];
+for (let p = 0; p < 32; p++) {
+  ambientPhotons.push(new AmbientPhoton(400, 280));
+}
+
+// -------------------------------------------------------------
 // Particle & 3D Celestial Quantum Core
 // -------------------------------------------------------------
-const PARTICLE_COUNT = 280;
+const PARTICLE_COUNT = 240;
 const particles = [];
 let mouse = { x: null, y: null, active: false };
 
@@ -175,13 +281,15 @@ class ReactorParticle {
 
   reset() {
     this.angle = Math.random() * Math.PI * 2;
-    this.baseRadius = 50 + Math.random() * 95;
+    this.baseRadius = 50 + Math.random() * 92;
     this.radius = this.baseRadius;
     this.speed = (0.007 + Math.random() * 0.014) * (Math.random() < 0.5 ? 1 : -1);
-    this.size = 1.2 + Math.random() * 2.6;
+    this.size = 1.2 + Math.random() * 2.5;
     this.alpha = 0.35 + Math.random() * 0.65;
     this.pulsePhase = Math.random() * Math.PI * 2;
     this.z = Math.random() * 2 - 1; // 3D depth layer
+    this.projX = 0;
+    this.projY = 0;
 
     const colors = ["#00f0ff", "#38bdf8", "#818cf8", "#a855f7", "#ffffff", "#10b981"];
     this.color = colors[Math.floor(Math.random() * colors.length)];
@@ -190,7 +298,7 @@ class ReactorParticle {
   update(time, centerX, centerY, autoScale = 1.0) {
     let currentSpeed = this.speed;
     if (appState === "recognizing") {
-      currentSpeed *= 4.0;
+      currentSpeed *= 3.8;
     } else if (appState === "speaking") {
       currentSpeed *= 2.2;
     }
@@ -231,16 +339,16 @@ class ReactorParticle {
     }
 
     this.radius += (targetRadius - this.radius) * 0.12;
+
+    // Cache 3D projected coordinates for drawing & synaptic connections
+    this.projX = centerX + Math.cos(this.angle) * this.radius + (tilt.x * this.z * 26 * autoScale);
+    this.projY = centerY + Math.sin(this.angle) * this.radius * (0.84 + this.z * 0.16) + (tilt.y * this.z * 20 * autoScale);
   }
 
-  draw(centerX, centerY, autoScale = 1.0) {
-    // 3D perspective projection based on gyro/mouse tilt & depth Z
-    const projX = centerX + Math.cos(this.angle) * this.radius + (tilt.x * this.z * 26 * autoScale);
-    const projY = centerY + Math.sin(this.angle) * this.radius * (0.84 + this.z * 0.16) + (tilt.y * this.z * 20 * autoScale);
-
+  draw(autoScale = 1.0) {
     ctx.save();
     ctx.beginPath();
-    ctx.arc(projX, projY, (this.size + (liveAudioLevel * 1.6)) * autoScale, 0, Math.PI * 2);
+    ctx.arc(this.projX, this.projY, (this.size + (liveAudioLevel * 1.6)) * autoScale, 0, Math.PI * 2);
     ctx.fillStyle = this.color;
     ctx.shadowColor = this.color;
     ctx.shadowBlur = appState === "speaking" || liveAudioLevel > 0.2 ? 16 : 8;
@@ -255,12 +363,56 @@ for (let i = 0; i < PARTICLE_COUNT; i++) {
 }
 
 // -------------------------------------------------------------
-// Concentric Rotating Sci-Fi Rings with 3D Depth
+// Synaptic Neural Constellations (Filament Mesh Connections)
+// -------------------------------------------------------------
+function drawParticleConstellations(particlesList, autoScale = 1.0) {
+  const maxDist = 44 * autoScale;
+  const maxDistSq = maxDist * maxDist;
+  const len = particlesList.length;
+
+  ctx.save();
+  ctx.lineWidth = 0.85 * autoScale;
+
+  // Stride loop keeps computation smooth at 60 FPS
+  for (let i = 0; i < len; i += 2) {
+    const p1 = particlesList[i];
+    for (let j = i + 1; j < len; j += 2) {
+      const p2 = particlesList[j];
+      const dx = p1.projX - p2.projX;
+      const dy = p1.projY - p2.projY;
+      const distSq = dx * dx + dy * dy;
+
+      if (distSq < maxDistSq) {
+        const dist = Math.sqrt(distSq);
+        const alpha = (1 - dist / maxDist) * 0.42 * (1 + liveAudioLevel * 1.5);
+        ctx.beginPath();
+        ctx.moveTo(p1.projX, p1.projY);
+        ctx.lineTo(p2.projX, p2.projY);
+
+        let strokeColor;
+        if (appState === "speaking") {
+          strokeColor = `rgba(168, 85, 247, ${alpha})`;
+        } else if (appState === "recognizing") {
+          strokeColor = `rgba(245, 158, 11, ${alpha})`;
+        } else {
+          strokeColor = `rgba(0, 240, 255, ${alpha})`;
+        }
+        ctx.strokeStyle = strokeColor;
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// -------------------------------------------------------------
+// Gyroscopic Astrolabe Rings & Singularity Vortex
 // -------------------------------------------------------------
 let ringRotation1 = 0;
 let ringRotation2 = 0;
 let ringRotation3 = 0;
 let ringRotation4 = 0;
+let vortexAngle = 0;
 
 function drawHoloRings(centerX, centerY, time, autoScale = 1.0) {
   const voiceBoost = 1.0 + (liveAudioLevel * 2.2);
@@ -268,89 +420,229 @@ function drawHoloRings(centerX, centerY, time, autoScale = 1.0) {
   ringRotation2 -= 0.007 * voiceBoost;
   ringRotation3 += 0.003 * voiceBoost;
   ringRotation4 -= 0.002 * voiceBoost;
+  vortexAngle += 0.02 * voiceBoost;
 
   // Center perspective offset
   const offX = tilt.x * 12 * autoScale;
   const offY = tilt.y * 8 * autoScale;
 
-  // 1. Central Core Singularity
+  // 1. Central Core Singularity with Chromatic Dispersion
   ctx.save();
-  const grad = ctx.createRadialGradient(centerX + offX, centerY + offY, 0, centerX + offX, centerY + offY, (48 + (liveAudioLevel * 24)) * autoScale);
-  if (appState === "recognizing") {
-    grad.addColorStop(0, "rgba(245, 158, 11, 0.95)");
-    grad.addColorStop(0.5, "rgba(234, 88, 12, 0.45)");
-    grad.addColorStop(1, "transparent");
-  } else if (appState === "speaking") {
-    grad.addColorStop(0, "rgba(168, 85, 247, 0.95)");
-    grad.addColorStop(0.5, "rgba(0, 240, 255, 0.55)");
-    grad.addColorStop(1, "transparent");
-  } else {
-    grad.addColorStop(0, "rgba(0, 240, 255, 0.92)");
-    grad.addColorStop(0.5, "rgba(2, 132, 199, 0.38)");
-    grad.addColorStop(1, "transparent");
-  }
-  ctx.fillStyle = grad;
+  const coreRadius = (46 + Math.sin(time * 0.006) * 5 + (liveAudioLevel * 24)) * autoScale;
+
+  // Chromatic dispersion layer 1 (cyan, shifted left)
+  const gradCyan = ctx.createRadialGradient(
+    centerX + offX - (2.5 * tilt.x * autoScale),
+    centerY + offY - (2.5 * tilt.y * autoScale),
+    0,
+    centerX + offX,
+    centerY + offY,
+    coreRadius * 1.15
+  );
+  gradCyan.addColorStop(0, "rgba(0, 240, 255, 0.95)");
+  gradCyan.addColorStop(0.5, "rgba(2, 132, 199, 0.45)");
+  gradCyan.addColorStop(1, "transparent");
+  ctx.fillStyle = gradCyan;
   ctx.beginPath();
-  ctx.arc(centerX + offX, centerY + offY, (48 + Math.sin(time * 0.005) * 4 + (liveAudioLevel * 20)) * autoScale, 0, Math.PI * 2);
+  ctx.arc(centerX + offX, centerY + offY, coreRadius * 1.1, 0, Math.PI * 2);
   ctx.fill();
+
+  // Chromatic dispersion layer 2 (magenta/gold, shifted right)
+  const gradAccent = ctx.createRadialGradient(
+    centerX + offX + (2.5 * tilt.x * autoScale),
+    centerY + offY + (2.5 * tilt.y * autoScale),
+    0,
+    centerX + offX,
+    centerY + offY,
+    coreRadius * 0.9
+  );
+  if (appState === "recognizing") {
+    gradAccent.addColorStop(0, "rgba(245, 158, 11, 0.95)");
+    gradAccent.addColorStop(0.6, "rgba(234, 88, 12, 0.4)");
+  } else if (appState === "speaking") {
+    gradAccent.addColorStop(0, "rgba(168, 85, 247, 0.95)");
+    gradAccent.addColorStop(0.6, "rgba(192, 132, 252, 0.4)");
+  } else {
+    gradAccent.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+    gradAccent.addColorStop(0.6, "rgba(56, 189, 248, 0.35)");
+  }
+  gradAccent.addColorStop(1, "transparent");
+  ctx.fillStyle = gradAccent;
+  ctx.beginPath();
+  ctx.arc(centerX + offX, centerY + offY, coreRadius * 0.85, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Singularity Plasma Vortex Arms (3 logarithmic spiral arms)
+  ctx.save();
+  ctx.translate(centerX + offX, centerY + offY);
+  for (let arm = 0; arm < 3; arm++) {
+    const armOffset = (arm * Math.PI * 2) / 3;
+    ctx.beginPath();
+    for (let s = 0; s < 20; s++) {
+      const spAng = vortexAngle + armOffset + s * 0.22;
+      const spR = (4 + s * 1.6) * autoScale;
+      const sx = Math.cos(spAng) * spR;
+      const sy = Math.sin(spAng) * spR * 0.9;
+      if (s === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.strokeStyle = appState === "speaking" ? "rgba(192, 132, 252, 0.65)" : "rgba(0, 240, 255, 0.65)";
+    ctx.lineWidth = 1.2 * autoScale;
+    ctx.stroke();
+  }
+  ctx.restore();
   ctx.restore();
 
-  // 2. Inner Dashed Rotating Arc
+  // 2. Inner Dashed Rotating Gimbal Arc
   ctx.save();
   ctx.translate(centerX + offX * 1.3, centerY + offY * 1.3);
   ctx.rotate(ringRotation1);
   ctx.beginPath();
   ctx.arc(0, 0, (56 + (liveAudioLevel * 12)) * autoScale, 0, Math.PI * 1.6);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.85)";
   ctx.lineWidth = 1.8 + (liveAudioLevel * 2);
   ctx.setLineDash([8, 12]);
   ctx.shadowColor = "#00f0ff";
   ctx.shadowBlur = 10 + (liveAudioLevel * 14);
   ctx.stroke();
+
+  // Counter-rotating nested dash segment
+  ctx.beginPath();
+  ctx.rotate(-ringRotation1 * 2.2);
+  ctx.arc(0, 0, (64 + (liveAudioLevel * 10)) * autoScale, Math.PI * 0.2, Math.PI * 1.1);
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.55)";
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([4, 10]);
+  ctx.stroke();
   ctx.restore();
 
-  // 3. Middle Ticked Segment Ring
+  // 3. Undulating Harmonic Quantum Waveform Ring
+  ctx.save();
+  ctx.translate(centerX + offX, centerY + offY);
+  ctx.beginPath();
+  const wavePoints = 64;
+  const waveRadius = (76 + liveAudioLevel * 18) * autoScale;
+  for (let i = 0; i <= wavePoints; i++) {
+    const ang = (i * Math.PI * 2) / wavePoints;
+    const waveAmp = (3.0 + liveAudioLevel * 14) * Math.sin(ang * 8 + time * 0.007);
+    const r = waveRadius + waveAmp;
+    const wx = Math.cos(ang) * r;
+    const wy = Math.sin(ang) * r * 0.88;
+    if (i === 0) ctx.moveTo(wx, wy);
+    else ctx.lineTo(wx, wy);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = appState === "speaking" ? "rgba(168, 85, 247, 0.75)" : "rgba(0, 240, 255, 0.7)";
+  ctx.lineWidth = 1.4 * autoScale;
+  ctx.shadowColor = "#00f0ff";
+  ctx.shadowBlur = 10;
+  ctx.stroke();
+  ctx.restore();
+
+  // 4. Middle Ticked Astrolabe Ring with Cardinal Degree Markers
   ctx.save();
   ctx.translate(centerX + offX * 0.9, centerY + offY * 0.9);
   ctx.rotate(ringRotation2);
-  const tickCount = 40;
-  const tickRadius = (92 + (liveAudioLevel * 14)) * autoScale;
+  const tickCount = 48;
+  const tickRadius = (96 + (liveAudioLevel * 14)) * autoScale;
   for (let i = 0; i < tickCount; i++) {
     const angle = (i * Math.PI * 2) / tickCount;
-    const len = (i % 4 === 0 ? 10 : 5) * autoScale;
+    const isMajor = i % 4 === 0;
+    const isCardinal = i % 12 === 0;
+    const len = (isCardinal ? 12 : (isMajor ? 8 : 4)) * autoScale;
     const x1 = Math.cos(angle) * tickRadius;
-    const y1 = Math.sin(angle) * tickRadius;
+    const y1 = Math.sin(angle) * (tickRadius * 0.88);
     const x2 = Math.cos(angle) * (tickRadius + len);
-    const y2 = Math.sin(angle) * (tickRadius + len);
+    const y2 = Math.sin(angle) * ((tickRadius + len) * 0.88);
 
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = i % 4 === 0 ? "rgba(0, 240, 255, 0.9)" : "rgba(56, 189, 248, 0.35)";
-    ctx.lineWidth = (i % 4 === 0 ? 2.2 : 1) * autoScale;
+    ctx.strokeStyle = isCardinal ? "rgba(0, 240, 255, 1.0)" : (isMajor ? "rgba(56, 189, 248, 0.75)" : "rgba(56, 189, 248, 0.28)");
+    ctx.lineWidth = (isCardinal ? 2.4 : (isMajor ? 1.6 : 1.0)) * autoScale;
     ctx.stroke();
+  }
+
+  // Cardinal degree headings
+  ctx.font = `${Math.round(8 * autoScale)}px 'JetBrains Mono', monospace`;
+  ctx.fillStyle = "rgba(0, 240, 255, 0.75)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const degLabels = ["000°", "090°", "180°", "270°"];
+  for (let c = 0; c < 4; c++) {
+    const cAng = (c * Math.PI) / 2;
+    const lblX = Math.cos(cAng) * (tickRadius + 18 * autoScale);
+    const lblY = Math.sin(cAng) * (tickRadius * 0.88 + 16 * autoScale);
+    ctx.fillText(degLabels[c], lblX, lblY);
   }
   ctx.restore();
 
-  // 4. Outer Holographic Boundary with Compass Ticks
+  // 5. Hexagonal Quantum Containment Shield (Rotating Polygon)
+  ctx.save();
+  ctx.translate(centerX + offX * 0.75, centerY + offY * 0.75);
+  ctx.rotate(ringRotation4);
+  const hexSides = 6;
+  const hexRadius = (118 + liveAudioLevel * 14) * autoScale;
+  ctx.beginPath();
+  for (let h = 0; h < hexSides; h++) {
+    const hAng = (h * Math.PI * 2) / hexSides;
+    const hx = Math.cos(hAng) * hexRadius;
+    const hy = Math.sin(hAng) * (hexRadius * 0.86);
+    if (h === 0) ctx.moveTo(hx, hy);
+    else ctx.lineTo(hx, hy);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.22)";
+  ctx.lineWidth = 1.0;
+  ctx.setLineDash([6, 14]);
+  ctx.stroke();
+  ctx.restore();
+
+  // 6. Outer Holographic Orbital Ring with 4 Satellites
   ctx.save();
   ctx.translate(centerX + offX * 0.6, centerY + offY * 0.6);
   ctx.rotate(ringRotation3);
+  const outerR = (142 + (liveAudioLevel * 14)) * autoScale;
+
   ctx.beginPath();
-  ctx.arc(0, 0, (140 + (liveAudioLevel * 14)) * autoScale, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.25)";
+  ctx.arc(0, 0, outerR, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.28)";
   ctx.lineWidth = 1.2;
   ctx.setLineDash([5, 18]);
   ctx.stroke();
 
+  // Accent solid arc
   ctx.beginPath();
-  ctx.arc(0, 0, (140 + (liveAudioLevel * 14)) * autoScale, 0, Math.PI * 0.45);
+  ctx.arc(0, 0, outerR, 0, Math.PI * 0.55);
   ctx.strokeStyle = "#00f0ff";
-  ctx.lineWidth = 2.8;
+  ctx.lineWidth = 2.6;
   ctx.setLineDash([]);
   ctx.shadowColor = "#00f0ff";
   ctx.shadowBlur = 12 + (liveAudioLevel * 12);
   ctx.stroke();
+
+  // 4 Orbiting Quantum Satellites with trailing energy tails
+  const satCount = 4;
+  for (let s = 0; s < satCount; s++) {
+    const sAng = (s * Math.PI * 2) / satCount;
+    const satX = Math.cos(sAng) * outerR;
+    const satY = Math.sin(sAng) * (outerR * 0.88);
+
+    // Trailing plasma arc
+    ctx.beginPath();
+    ctx.arc(0, 0, outerR, sAng - 0.22, sAng);
+    ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
+    ctx.lineWidth = 2.0 * autoScale;
+    ctx.stroke();
+
+    // Satellite orb
+    ctx.beginPath();
+    ctx.arc(satX, satY, 3.2 * autoScale, 0, Math.PI * 2);
+    ctx.fillStyle = s % 2 === 0 ? "#00f0ff" : "#a855f7";
+    ctx.shadowColor = "#00f0ff";
+    ctx.shadowBlur = 12;
+    ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -358,18 +650,18 @@ function drawHoloRings(centerX, centerY, time, autoScale = 1.0) {
 // Quantum Synaptic Lightning Tendrils
 // -------------------------------------------------------------
 function drawQuantumTendrils(centerX, centerY, autoScale = 1.0) {
-  const arcChance = appState === "speaking" ? 0.85 : (appState === "recognizing" ? 0.7 : (liveAudioLevel > 0.15 ? 0.65 : 0.28));
+  const arcChance = appState === "speaking" ? 0.85 : (appState === "recognizing" ? 0.72 : (liveAudioLevel > 0.15 ? 0.65 : 0.28));
   if (Math.random() > arcChance) return;
 
   const count = appState === "speaking" ? 3 : (liveAudioLevel > 0.2 ? 2 : 1);
-  const ringRadius = (94 + (liveAudioLevel * 20)) * autoScale;
+  const ringRadius = (96 + (liveAudioLevel * 20)) * autoScale;
 
   for (let c = 0; c < count; c++) {
     const targetAngle = Math.random() * Math.PI * 2;
     const targetX = centerX + (Math.cos(targetAngle) * ringRadius) + (tilt.x * 16 * autoScale);
-    const targetY = centerY + (Math.sin(targetAngle) * ringRadius * 0.85) + (tilt.y * 16 * autoScale);
+    const targetY = centerY + (Math.sin(targetAngle) * ringRadius * 0.86) + (tilt.y * 16 * autoScale);
 
-    const segments = 6;
+    const segments = 7;
     let currX = centerX + (tilt.x * 10 * autoScale);
     let currY = centerY + (tilt.y * 10 * autoScale);
 
@@ -381,7 +673,7 @@ function drawQuantumTendrils(centerX, centerY, autoScale = 1.0) {
       const frac = s / segments;
       const baseX = centerX + (targetX - centerX) * frac;
       const baseY = centerY + (targetY - centerY) * frac;
-      const jitter = (Math.random() - 0.5) * 16 * autoScale * (1 - frac * 0.4);
+      const jitter = (Math.random() - 0.5) * 18 * autoScale * (1 - frac * 0.35);
 
       currX = baseX + jitter;
       currY = baseY + jitter;
@@ -390,10 +682,10 @@ function drawQuantumTendrils(centerX, centerY, autoScale = 1.0) {
 
     const arcColor = appState === "recognizing" ? "#f59e0b" : (appState === "speaking" ? "#a855f7" : "#00f0ff");
     ctx.strokeStyle = arcColor;
-    ctx.lineWidth = (1.4 + Math.random() * 1.4) * autoScale;
+    ctx.lineWidth = (1.5 + Math.random() * 1.5) * autoScale;
     ctx.shadowColor = arcColor;
     ctx.shadowBlur = 14;
-    ctx.globalAlpha = 0.8 + Math.random() * 0.2;
+    ctx.globalAlpha = 0.85 + Math.random() * 0.15;
     ctx.stroke();
     ctx.restore();
   }
@@ -405,18 +697,18 @@ function drawQuantumTendrils(centerX, centerY, autoScale = 1.0) {
 let radarAngle = 0;
 function drawRadarSweep(centerX, centerY, autoScale = 1.0) {
   radarAngle += 0.022 * (1 + liveAudioLevel * 2);
-  const radarRadius = (142 + (liveAudioLevel * 15)) * autoScale;
+  const radarRadius = (144 + (liveAudioLevel * 15)) * autoScale;
 
   ctx.save();
   ctx.translate(centerX + (tilt.x * 8 * autoScale), centerY + (tilt.y * 8 * autoScale));
 
   const sweepGrad = ctx.createRadialGradient(0, 0, 10 * autoScale, 0, 0, radarRadius);
   sweepGrad.addColorStop(0, "rgba(0, 240, 255, 0)");
-  sweepGrad.addColorStop(1, "rgba(0, 240, 255, 0.14)");
+  sweepGrad.addColorStop(1, "rgba(0, 240, 255, 0.15)");
 
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  ctx.arc(0, 0, radarRadius, radarAngle - 0.48, radarAngle);
+  ctx.arc(0, 0, radarRadius, radarAngle - 0.5, radarAngle);
   ctx.closePath();
   ctx.fillStyle = sweepGrad;
   ctx.fill();
@@ -426,10 +718,10 @@ function drawRadarSweep(centerX, centerY, autoScale = 1.0) {
   ctx.beginPath();
   ctx.moveTo(0, 0);
   ctx.lineTo(beamX, beamY);
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.8)";
-  ctx.lineWidth = 1.6 * autoScale;
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.85)";
+  ctx.lineWidth = 1.8 * autoScale;
   ctx.shadowColor = "#00f0ff";
-  ctx.shadowBlur = 10;
+  ctx.shadowBlur = 12;
   ctx.stroke();
 
   ctx.restore();
@@ -445,7 +737,7 @@ function drawTargetLock(time) {
   ctx.translate(mouse.x, mouse.y);
   ctx.rotate(time * 0.002);
 
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.7)";
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.75)";
   ctx.lineWidth = 1.2;
   ctx.shadowColor = "#00f0ff";
   ctx.shadowBlur = 8;
@@ -477,17 +769,16 @@ function drawHUDOverlays(width, height, time) {
   ctx.save();
   ctx.font = "9px 'JetBrains Mono', monospace";
   ctx.fillStyle = "rgba(0, 240, 255, 0.55)";
-
   ctx.fillText(`[NEURAL CORE: ${appState.toUpperCase()}]`, 14, 20);
   ctx.fillText(`[FREQUENCY: ${(82.0 + Math.sin(time * 0.002) * 5).toFixed(1)} GHz]`, 14, 34);
 
   ctx.textAlign = "right";
   ctx.fillText(`[TILT: X${(tilt.x * 10).toFixed(0)} Y${(tilt.y * 10).toFixed(0)}]`, width - 14, 20);
-  ctx.fillText(`[COHERENCE: 99.4%]`, width - 14, 34);
+  ctx.fillText(`[COHERENCE: 99.7%]`, width - 14, 34);
 
   // Corner HUD tick brackets
-  ctx.strokeStyle = "rgba(0, 240, 255, 0.28)";
-  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = "rgba(0, 240, 255, 0.32)";
+  ctx.lineWidth = 1.4;
   // Top-left
   ctx.beginPath(); ctx.moveTo(8, 22); ctx.lineTo(8, 8); ctx.lineTo(22, 8); ctx.stroke();
   // Top-right
@@ -515,17 +806,39 @@ function animate(time) {
 
   ctx.clearRect(0, 0, rect.width, rect.height);
 
-  drawHUDOverlays(rect.width, rect.height, time);
-  drawRadarSweep(centerX, centerY, autoScale);
-  drawHoloRings(centerX, centerY, time, autoScale);
-  drawQuantumTendrils(centerX, centerY, autoScale);
-
-  particles.forEach((p) => {
-    p.update(time, centerX, centerY, autoScale);
-    p.draw(centerX, centerY, autoScale);
+  // 1. Ambient nano-photons in background
+  ambientPhotons.forEach((ap) => {
+    ap.update(rect.width, rect.height, time);
+    ap.draw();
   });
 
+  // 2. HUD corner overlays and radar sweep
+  drawHUDOverlays(rect.width, rect.height, time);
+  drawRadarSweep(centerX, centerY, autoScale);
+
+  // 3. Astrolabe Rings, Singularity & Plasma Vortex
+  drawHoloRings(centerX, centerY, time, autoScale);
+
+  // 4. Update particles
+  particles.forEach((p) => {
+    p.update(time, centerX, centerY, autoScale);
+  });
+
+  // 5. Draw Synaptic Constellation Filaments between close particles
+  drawParticleConstellations(particles, autoScale);
+
+  // 6. Draw particles
+  particles.forEach((p) => {
+    p.draw(autoScale);
+  });
+
+  // 7. Quantum Branching Lightning Tendrils
+  drawQuantumTendrils(centerX, centerY, autoScale);
+
+  // 8. Expanding shockwaves & kinetic spark embers
   updateAndDrawShockwaves(centerX, centerY);
+
+  // 9. Interactive target reticle & audio waveform
   drawTargetLock(time);
   animateWaveform(time);
 
@@ -1662,6 +1975,10 @@ commandForm.addEventListener("submit", (e) => {
   const val = commandInput.value;
   commandInput.value = "";
   playSciFiBeep("execute");
+  if (canvas) {
+    const rect = canvas.getBoundingClientRect();
+    triggerShockwave(rect.width / 2, rect.height / 2, "#00f0ff");
+  }
   sendCommand(val);
 });
 
@@ -1670,6 +1987,10 @@ document.querySelectorAll(".chip").forEach((chip) => {
   chip.addEventListener("click", () => {
     const cmd = chip.getAttribute("data-cmd");
     playSciFiBeep("execute");
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      triggerShockwave(rect.width / 2, rect.height / 2, "#a855f7");
+    }
     sendCommand(cmd);
   });
 });
