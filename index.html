@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ALEX // NEURAL INTERFACE</title>
-  <link rel="stylesheet" href="static/style.css">
+  <link rel="stylesheet" href="/static/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -100,112 +100,392 @@
       </button>
     </section>
 
-    <!-- Center Stage: Arc Reactor Particle Sphere -->
-    <main class="hud-main">
-      <div class="particle-stage-container">
-        <!-- Canvas for Dynamic Particle Reactor -->
-        <canvas id="particleCanvas"></canvas>
-        
-        <!-- Center Hologram Overlay Info -->
-        <div class="reactor-core-info">
-          <div class="core-label">AI WAKE WORD</div>
-          <div class="core-status" id="coreStatus">"ALEX"</div>
-          <div class="core-frequency" id="coreFrequency">84.2 GHz</div>
-        </div>
-      </div>
-
-      <!-- Live Voice Waveform Visualizer -->
-      <div class="waveform-container">
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-        <div class="wave-bar"></div>
-      </div>
-    </main>
-
-    <!-- Holographic Feed / Transcript -->
-    <section class="hud-feed-section">
-      <div class="feed-scanner-line"></div>
-      <div class="feed-header">
-        <span class="feed-title">ALEX TELEMETRY LOG</span>
-        <span class="feed-tag">WAKE_WORD: "ALEX"</span>
-      </div>
-      <div class="feed-log" id="feedLog">
-        <div class="log-entry system">
-          <span class="timestamp">[SYS_INIT]</span>
-          <span class="text">Alex Neural Core active. Call "Alex" or say "type in WhatsApp...", "type in Google..." anytime!</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Quick Action Chips -->
-    <div class="quick-chips">
-      <button class="chip" data-cmd="Alex">👋 "Alex"</button>
-      <button class="chip" data-cmd="show stocks">📈 Live Stocks</button>
-      <button class="chip" data-cmd="stock NVDA">🟢 NVDA Stock</button>
-      <button class="chip" data-cmd="price of Bitcoin">₿ Bitcoin</button>
-      <button class="chip" data-cmd="system access">🛡️ System Access</button>
-      <button class="chip" data-cmd="show phone link">🌐 Phone Link</button>
-      <button class="chip" data-cmd="type in WhatsApp Hello! How are you doing?">💬 Type in WhatsApp</button>
-      <button class="chip" data-cmd="type in Google Best tech news today">🔍 Type in Google</button>
-      <button class="chip" data-cmd="open chrome">🚀 Chrome</button>
-      <button class="chip" data-cmd="show charts">📊 Open Charts</button>
-      <button class="chip" data-cmd="open texting">💬 Text Others</button>
-      <button class="chip" data-cmd="volume up">🔊 Volume +</button>
-      <button class="chip" data-cmd="screenshot">📸 Screenshot</button>
-      <button class="chip" data-cmd="dark mode">🌓 Dark Mode</button>
-      <button class="chip" data-cmd="show memory">🧠 Memory Vault</button>
-      <button class="chip" data-cmd="read notes">📝 Notes</button>
-      <button class="chip" data-cmd="weather">☀️ Weather</button>
-      <button class="chip" data-cmd="timer for 2 minutes">⏱️ Timer</button>
+    <!-- Mobile Cockpit View Switcher (Options | Alex Core | Intel & Logs) -->
+    <div class="mobile-hud-tabs" id="mobileHudTabs">
+      <button type="button" class="mobile-tab-btn" data-panel="left">
+        <span>⚡</span> OPTIONS
+      </button>
+      <button type="button" class="mobile-tab-btn active" data-panel="center">
+        <span>🔮</span> ALEX CORE
+      </button>
+      <button type="button" class="mobile-tab-btn" data-panel="right">
+        <span>🏢</span> INTEL & LOGS
+      </button>
     </div>
 
-    <!-- Bottom Command Input Bar with Dedicated Mobile Voice Control -->
-    <footer class="hud-footer">
-      <!-- Device Target Selector Bar -->
-      <div class="device-target-bar">
-        <span class="target-bar-label">EXECUTION TARGET:</span>
-        <div class="target-pills-group">
-          <button type="button" class="target-pill-btn active" id="targetPhoneBtn" data-target="phone">
-            <span class="pill-icon">📱</span> THIS PHONE
-          </button>
-          <button type="button" class="target-pill-btn" id="targetLaptopBtn" data-target="laptop">
-            <span class="pill-icon">💻</span> LAPTOP
+    <!-- ========================================================= -->
+    <!-- MASTER 3-COLUMN COCKPIT GRID                              -->
+    <!-- Left: Options | Middle: Alex Circle | Right: Details/Feed -->
+    <!-- ========================================================= -->
+    <div class="hud-cockpit-grid">
+
+      <!-- ========================================================= -->
+      <!-- LEFT SIDE: OPTIONS & CONTROLS                             -->
+      <!-- ========================================================= -->
+      <aside class="hud-panel hud-left-panel" id="hudLeftPanel">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="cyber-badge-sm">NEURAL</span>
+            <h3 class="panel-title">OPTIONS & TOOLS</h3>
+          </div>
+          <span class="panel-status-dot pulse-green"></span>
+        </div>
+
+        <div class="left-panel-content">
+          <!-- Execution Target Switcher -->
+          <div class="left-section">
+            <div class="section-label">EXECUTION TARGET</div>
+            <div class="target-switch-pill">
+              <button type="button" class="target-sub-btn active" id="targetPhoneBtn" data-target="phone">
+                <span>📱</span> PHONE
+              </button>
+              <button type="button" class="target-sub-btn" id="targetLaptopBtn" data-target="laptop">
+                <span>💻</span> LAPTOP
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary Navigation Options -->
+          <div class="left-section">
+            <div class="section-label">SYSTEM HUBS</div>
+            <div class="options-nav-list">
+              <button type="button" class="hud-opt-btn" id="optCompanyDetailsBtn">
+                <span class="opt-icon">🏢</span>
+                <div class="opt-info">
+                  <span class="opt-title">Company Details</span>
+                  <span class="opt-desc">CEO, Market Cap & Moat</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optLiveStocksBtn">
+                <span class="opt-icon">📈</span>
+                <div class="opt-info">
+                  <span class="opt-title">Live Stock Market</span>
+                  <span class="opt-desc">Real-time ticker & charts</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optPermissionsBtn">
+                <span class="opt-icon">🛡️</span>
+                <div class="opt-info">
+                  <span class="opt-title">System Access</span>
+                  <span class="opt-desc">Mic, Screen, Permissions</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optPhoneLinkBtn">
+                <span class="opt-icon">🌐</span>
+                <div class="opt-info">
+                  <span class="opt-title">Phone Remote Link</span>
+                  <span class="opt-desc">QR code & remote URL</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optChartsBtn">
+                <span class="opt-icon">📊</span>
+                <div class="opt-info">
+                  <span class="opt-title">Analytics & Charts</span>
+                  <span class="opt-desc">Telemetry waveforms</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optCommsBtn">
+                <span class="opt-icon">💬</span>
+                <div class="opt-info">
+                  <span class="opt-title">Text Others</span>
+                  <span class="opt-desc">WhatsApp & Messaging</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optMemoryBtn">
+                <span class="opt-icon">🧠</span>
+                <div class="opt-info">
+                  <span class="opt-title">Memory Vault</span>
+                  <span class="opt-desc">Saved user facts</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn" id="optNotesBtn">
+                <span class="opt-icon">📝</span>
+                <div class="opt-info">
+                  <span class="opt-title">Notes & Tasks</span>
+                  <span class="opt-desc">Voice reminders & vault</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Instant Sci-Fi Actions -->
+          <div class="left-section">
+            <div class="section-label">INSTANT COMMANDS</div>
+            <div class="instant-action-grid">
+              <button type="button" class="action-chip-btn" data-cmd="weather">
+                <span>☀️</span> Weather
+              </button>
+              <button type="button" class="action-chip-btn" data-cmd="timer for 2 minutes">
+                <span>⏱️</span> 2m Timer
+              </button>
+              <button type="button" class="action-chip-btn" data-cmd="screenshot">
+                <span>📸</span> Screen
+              </button>
+              <button type="button" class="action-chip-btn" data-cmd="volume up">
+                <span>🔊</span> Volume +
+              </button>
+              <button type="button" class="action-chip-btn" data-cmd="dark mode">
+                <span>🌓</span> Dark Mode
+              </button>
+              <button type="button" class="action-chip-btn" data-cmd="type in WhatsApp Hello!">
+                <span>💬</span> WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ========================================================= -->
+      <!-- MIDDLE: ALEX IN MIDDLE CIRCLE (ANIMATED & SIMPLE)         -->
+      <!-- ========================================================= -->
+      <main class="hud-panel hud-center-stage" id="hudCenterStage">
+        <!-- Animated Middle Circle Stage -->
+        <div class="alex-middle-circle-container">
+          <!-- Multi-Layered Rotating Astrolabe Cyber Rings -->
+          <div class="cyber-orbit-ring ring-outer"></div>
+          <div class="cyber-orbit-ring ring-middle"></div>
+          <div class="cyber-orbit-ring ring-inner"></div>
+
+          <!-- Quantum Particle Reactor Canvas -->
+          <canvas id="particleCanvas" class="alex-particle-canvas"></canvas>
+
+          <!-- Middle Holographic Core -->
+          <div class="alex-core-disc" id="alexCoreDisc">
+            <div class="core-radial-pulse"></div>
+            <div class="core-brand-name">A.L.E.X.</div>
+            <div class="core-status-tag" id="coreStatus">AI WAKE: "ALEX"</div>
+            <div class="core-freq-indicator" id="coreFrequency">84.2 GHz</div>
+          </div>
+        </div>
+
+        <!-- Real-Time Voice Waveform Equalizer -->
+        <div class="waveform-container" id="waveformContainer">
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+
+        <!-- Prominent Animated Talk Orb Button -->
+        <div class="alex-voice-orb-wrapper">
+          <button type="button" class="alex-talk-orb-btn" id="mobileMicBtn" title="Tap to Talk to Alex">
+            <span class="orb-pulse-ring ring-1"></span>
+            <span class="orb-pulse-ring ring-2"></span>
+            <span class="orb-mic-icon">🎙️</span>
+            <span class="orb-btn-label" id="micBtnLabel">TAP TO TALK TO ALEX</span>
           </button>
         </div>
-      </div>
 
-      <div class="mobile-voice-bar">
-        <button type="button" class="mobile-mic-btn" id="mobileMicBtn" title="Tap to Talk to Alex">
-          <span class="mic-pulse-ring"></span>
-          <span class="mic-icon-symbol">🎙️</span>
-          <span class="mic-btn-label" id="micBtnLabel">TAP TO TALK TO ALEX</span>
-        </button>
-      </div>
+        <!-- Streamlined Command Input Bar -->
+        <form id="commandForm" class="command-box">
+          <button type="button" class="inline-mic-btn" id="inlineMicBtn" title="Speak Voice Command">🎙️</button>
+          <span class="prompt-arrow">❯</span>
+          <input 
+            type="text" 
+            id="commandInput" 
+            placeholder="Talk or type (e.g. 'details of Apple', 'who is CEO of Tesla')..." 
+            autocomplete="off"
+          />
+          <button type="submit" class="send-btn">
+            <span>EXECUTE</span>
+            <span class="btn-glow"></span>
+          </button>
+        </form>
 
-      <form id="commandForm" class="command-box">
-        <button type="button" class="inline-mic-btn" id="inlineMicBtn" title="Speak Voice Command">🎙️</button>
-        <span class="prompt-arrow">❯</span>
-        <input 
-          type="text" 
-          id="commandInput" 
-          placeholder="Speak or type (e.g. 'Alex type in WhatsApp hello', 'search Google')..." 
-          autocomplete="off"
-        />
-        <button type="submit" class="send-btn">
-          <span>EXECUTE</span>
-          <span class="btn-glow"></span>
-        </button>
-      </form>
-    </footer>
+        <!-- Quick Query Suggestion Pills -->
+        <div class="center-quick-pills">
+          <button type="button" class="pill-chip" data-cmd="Alex">👋 "Alex"</button>
+          <button type="button" class="pill-chip" data-cmd="show details of companies and all">🏢 Company Details</button>
+          <button type="button" class="pill-chip" data-cmd="details of Apple">🍎 Apple Profile</button>
+          <button type="button" class="pill-chip" data-cmd="who is the CEO of Tesla">⚡ Tesla CEO</button>
+          <button type="button" class="pill-chip" data-cmd="show stocks">📈 Live Stocks</button>
+        </div>
+      </main>
+
+      <!-- ========================================================= -->
+      <!-- RIGHT SIDE: SHOW DETAILS OF COMPANIES & TELEMETRY         -->
+      <!-- ========================================================= -->
+      <aside class="hud-panel hud-right-panel" id="hudRightPanel">
+        <!-- Right Panel Header with Sub-Tabs -->
+        <div class="panel-header right-panel-header">
+          <div class="right-tabs-group">
+            <button type="button" class="right-sub-tab active" id="rightTabCompanyBtn" data-tab="company">
+              <span>🏢</span> DETAILS
+            </button>
+            <button type="button" class="right-sub-tab" id="rightTabChartBtn" data-tab="chart">
+              <span>📈</span> CHART
+            </button>
+            <button type="button" class="right-sub-tab" id="rightTabFeedBtn" data-tab="feed">
+              <span>📡</span> LOGS
+            </button>
+          </div>
+          <button type="button" class="expand-modal-btn" id="expandStocksModalBtn" title="Open Fullscreen View">↗</button>
+        </div>
+
+        <div class="right-panel-body">
+          <!-- TAB 1: COMPANY DETAILS & FUNDAMENTALS -->
+          <div class="right-tab-pane active" id="paneCompanyDetails">
+            <!-- Quick Company Chips Row -->
+            <div class="company-chips-row" id="rightCompanyChipsRow">
+              <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Active Company Card -->
+            <div class="company-detail-card" id="activeCompanyCard">
+              <div class="comp-card-header">
+                <div class="comp-brand">
+                  <span class="comp-symbol" id="rightCompSymbol">NVDA</span>
+                  <span class="comp-name" id="rightCompName">NVIDIA Corporation</span>
+                </div>
+                <div class="comp-price-block">
+                  <div class="comp-price" id="rightCompPrice">$210.96</div>
+                  <div class="comp-change pos" id="rightCompChange">+1.45% ▲</div>
+                </div>
+              </div>
+
+              <!-- Executive Leadership & Sector Badge -->
+              <div class="comp-leadership-banner">
+                <span class="ceo-badge"><span class="badge-icon">👤</span> <span id="rightCompCeo">CEO: Jensen Huang</span></span>
+                <span class="sector-badge" id="rightCompSector">Technology • Semiconductors</span>
+              </div>
+
+              <!-- Metadata Grid -->
+              <div class="comp-meta-grid">
+                <div class="comp-meta-item">
+                  <span class="meta-label">HEADQUARTERS</span>
+                  <span class="meta-val" id="rightCompHq">Santa Clara, CA</span>
+                </div>
+                <div class="comp-meta-item">
+                  <span class="meta-label">FOUNDED</span>
+                  <span class="meta-val" id="rightCompFounded">1993</span>
+                </div>
+                <div class="comp-meta-item">
+                  <span class="meta-label">EMPLOYEES</span>
+                  <span class="meta-val" id="rightCompEmployees">29,600+</span>
+                </div>
+                <div class="comp-meta-item">
+                  <span class="meta-label">BETA</span>
+                  <span class="meta-val" id="rightCompBeta">1.68</span>
+                </div>
+              </div>
+
+              <!-- Financial Fundamentals Box -->
+              <div class="comp-fundamentals-box">
+                <div class="fund-row">
+                  <span class="fund-label">MARKET CAP</span>
+                  <span class="fund-val highlight" id="rightCompMarketCap">$3.45 Trillion</span>
+                </div>
+                <div class="fund-row">
+                  <span class="fund-label">P/E RATIO</span>
+                  <span class="fund-val" id="rightCompPE">51.8x</span>
+                </div>
+                <div class="fund-row">
+                  <span class="fund-label">EPS</span>
+                  <span class="fund-val" id="rightCompEPS">$4.07</span>
+                </div>
+                <div class="fund-row">
+                  <span class="fund-label">ANALYST TARGET</span>
+                  <span class="fund-val green" id="rightCompTarget">$165.00 (+18%)</span>
+                </div>
+                <div class="fund-range-block">
+                  <div class="range-labels">
+                    <span id="rightComp52Low">52W L: $75.60</span>
+                    <span class="range-title">52-WEEK RANGE</span>
+                    <span id="rightComp52High">52W H: $144.42</span>
+                  </div>
+                  <div class="range-track">
+                    <div class="range-fill" id="rightCompRangeFill" style="width: 82%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Business Summary -->
+              <div class="comp-description-box">
+                <div class="desc-heading">BUSINESS OVERVIEW & MOAT</div>
+                <p class="desc-text" id="rightCompDesc">
+                  NVIDIA is the global pioneer in accelerated computing and artificial intelligence. It invented the GPU, CUDA parallel computing architecture, and the Blackwell/Hopper AI supercomputing clusters powering modern generative AI models.
+                </p>
+              </div>
+
+              <!-- Latest News & Catalysts -->
+              <div class="comp-news-box">
+                <div class="news-heading">LATEST CATALYSTS & HEADLINES</div>
+                <div class="news-list" id="rightCompNewsList">
+                  <!-- Populated via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: LIVE CHART -->
+          <div class="right-tab-pane" id="paneLiveChart">
+            <div class="right-chart-wrapper">
+              <canvas id="rightChartCanvas"></canvas>
+            </div>
+            <div class="chart-stats-grid">
+              <div class="cstat-card">
+                <span class="cstat-lbl">24H HIGH</span>
+                <span class="cstat-val" id="rightStatHigh">$213.50</span>
+              </div>
+              <div class="cstat-card">
+                <span class="cstat-lbl">24H LOW</span>
+                <span class="cstat-val" id="rightStatLow">$208.20</span>
+              </div>
+              <div class="cstat-card">
+                <span class="cstat-lbl">VOLUME</span>
+                <span class="cstat-val" id="rightStatVol">48.2M</span>
+              </div>
+              <div class="cstat-card">
+                <span class="cstat-lbl">SENTIMENT</span>
+                <span class="cstat-val green" id="rightStatSentiment">76% BULLISH</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: TELEMETRY & CONVERSATION FEED -->
+          <div class="right-tab-pane" id="paneTelemetryLog">
+            <div class="feed-header">
+              <span class="feed-title">ALEX TELEMETRY LOG</span>
+              <span class="feed-tag">WAKE_WORD: "ALEX"</span>
+            </div>
+            <div class="feed-log" id="feedLog">
+              <div class="log-entry system">
+                <span class="timestamp">[SYS_INIT]</span>
+                <span class="text">Alex Neural Core active. Say "Alex", "details of Nvidia", or "who is CEO of Apple" anytime!</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
 
   </div>
 
@@ -518,39 +798,120 @@
             </div>
           </div>
 
-          <!-- Interactive Holographic Area Chart -->
-          <div class="stock-chart-wrapper">
-            <canvas id="stockChartCanvas"></canvas>
+          <!-- Modal Navigation Sub-Tabs -->
+          <div class="modal-sub-tabs">
+            <button type="button" class="modal-tab-btn active" data-modaltab="chart">📊 CHART & STATS</button>
+            <button type="button" class="modal-tab-btn" data-modaltab="profile">🏢 COMPANY PROFILE</button>
+            <button type="button" class="modal-tab-btn" data-modaltab="fundamentals">📑 FUNDAMENTALS</button>
+            <button type="button" class="modal-tab-btn" data-modaltab="news">📰 MARKET NEWS</button>
           </div>
 
-          <!-- Key Financial Metrics Grid -->
-          <div class="stock-metrics-grid">
-            <div class="stock-metric-card">
-              <span class="metric-label">24H HIGH</span>
-              <span class="metric-val" id="stockStatHigh">$213.50</span>
+          <!-- TAB 1: Chart & Stats -->
+          <div class="modal-tab-pane active" id="modalPaneChart">
+            <div class="stock-chart-wrapper">
+              <canvas id="stockChartCanvas"></canvas>
             </div>
-            <div class="stock-metric-card">
-              <span class="metric-label">24H LOW</span>
-              <span class="metric-val" id="stockStatLow">$208.20</span>
+
+            <!-- Key Financial Metrics Grid -->
+            <div class="stock-metrics-grid">
+              <div class="stock-metric-card">
+                <span class="metric-label">24H HIGH</span>
+                <span class="metric-val" id="stockStatHigh">$213.50</span>
+              </div>
+              <div class="stock-metric-card">
+                <span class="metric-label">24H LOW</span>
+                <span class="metric-val" id="stockStatLow">$208.20</span>
+              </div>
+              <div class="stock-metric-card">
+                <span class="metric-label">VOLUME</span>
+                <span class="metric-val" id="stockStatVol">48.2M</span>
+              </div>
+              <div class="stock-metric-card">
+                <span class="metric-label">SENTIMENT</span>
+                <span class="metric-val sentiment-val" id="stockStatSentiment">76% BULLISH</span>
+              </div>
             </div>
-            <div class="stock-metric-card">
-              <span class="metric-label">VOLUME</span>
-              <span class="metric-val" id="stockStatVol">48.2M</span>
-            </div>
-            <div class="stock-metric-card">
-              <span class="metric-label">SENTIMENT</span>
-              <span class="metric-val sentiment-val" id="stockStatSentiment">76% BULLISH</span>
+
+            <!-- Live World Exchanges Bar -->
+            <div class="world-markets-bar">
+              <span class="wm-heading">EXCHANGE STATUS:</span>
+              <div class="wm-tags">
+                <span class="wm-tag open"><span class="dot"></span> NYSE: OPEN</span>
+                <span class="wm-tag open"><span class="dot"></span> NASDAQ: OPEN</span>
+                <span class="wm-tag closed"><span class="dot"></span> LSE: CLOSED</span>
+                <span class="wm-tag closed"><span class="dot"></span> TOKYO: CLOSED</span>
+              </div>
             </div>
           </div>
 
-          <!-- Live World Exchanges Bar -->
-          <div class="world-markets-bar">
-            <span class="wm-heading">EXCHANGE STATUS:</span>
-            <div class="wm-tags">
-              <span class="wm-tag open"><span class="dot"></span> NYSE: OPEN</span>
-              <span class="wm-tag open"><span class="dot"></span> NASDAQ: OPEN</span>
-              <span class="wm-tag closed"><span class="dot"></span> LSE: CLOSED</span>
-              <span class="wm-tag closed"><span class="dot"></span> TOKYO: CLOSED</span>
+          <!-- TAB 2: Company Profile -->
+          <div class="modal-tab-pane" id="modalPaneProfile">
+            <div class="modal-comp-details-box">
+              <div class="modal-leadership-tag">
+                <span class="modal-ceo-badge">👤 <span id="modalCompCeo">CEO: Jensen Huang</span></span>
+                <span class="modal-sector-badge" id="modalCompSector">Technology • Semiconductors</span>
+              </div>
+              <div class="modal-meta-grid">
+                <div class="mm-item">
+                  <span class="mm-lbl">HEADQUARTERS</span>
+                  <span class="mm-val" id="modalCompHq">Santa Clara, CA</span>
+                </div>
+                <div class="mm-item">
+                  <span class="mm-lbl">FOUNDED</span>
+                  <span class="mm-val" id="modalCompFounded">1993</span>
+                </div>
+                <div class="mm-item">
+                  <span class="mm-lbl">EMPLOYEES</span>
+                  <span class="mm-val" id="modalCompEmployees">29,600+</span>
+                </div>
+                <div class="mm-item">
+                  <span class="mm-lbl">BETA</span>
+                  <span class="mm-val" id="modalCompBeta">1.68</span>
+                </div>
+              </div>
+              <div class="modal-desc-box">
+                <div class="mdesc-title">BUSINESS OVERVIEW & MOAT</div>
+                <p class="mdesc-text" id="modalCompDesc">
+                  NVIDIA is the global pioneer in accelerated computing and artificial intelligence.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: Fundamentals -->
+          <div class="modal-tab-pane" id="modalPaneFundamentals">
+            <div class="modal-funds-grid">
+              <div class="fund-card">
+                <span class="fcard-label">MARKET CAP</span>
+                <span class="fcard-val" id="modalCompMarketCap">$3.45 Trillion</span>
+              </div>
+              <div class="fund-card">
+                <span class="fcard-label">P/E RATIO</span>
+                <span class="fcard-val" id="modalCompPE">51.8x</span>
+              </div>
+              <div class="fund-card">
+                <span class="fcard-label">EPS</span>
+                <span class="fcard-val" id="modalCompEPS">$4.07</span>
+              </div>
+              <div class="fund-card">
+                <span class="fcard-label">ANALYST TARGET</span>
+                <span class="fcard-val green" id="modalCompTarget">$165.00 (+18%)</span>
+              </div>
+              <div class="fund-card wide">
+                <span class="fcard-label">52-WEEK RANGE</span>
+                <div class="modal-range-bar">
+                  <span id="modalComp52Low">$75.60</span>
+                  <div class="mrange-track"><div class="mrange-fill" id="modalCompRangeFill" style="width: 82%;"></div></div>
+                  <span id="modalComp52High">$144.42</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: News -->
+          <div class="modal-tab-pane" id="modalPaneNews">
+            <div class="modal-news-list" id="modalCompNewsList">
+              <!-- Populated via JS -->
             </div>
           </div>
         </div>
@@ -558,6 +919,6 @@
     </div>
   </div>
 
-  <script src="static/app.js"></script>
+  <script src="/static/app.js"></script>
 </body>
 </html>

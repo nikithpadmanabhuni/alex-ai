@@ -920,6 +920,18 @@ function setAppState(state, msg) {
     coreStatus.style.color = "#a855f7";
   }
 
+  const talkBtn = document.getElementById("mobileMicBtn");
+  const micLabel = document.getElementById("micBtnLabel");
+  if (talkBtn) {
+    talkBtn.classList.remove("listening", "recognizing", "speaking");
+    talkBtn.classList.add(state);
+  }
+  if (micLabel) {
+    if (state === "listening") micLabel.innerText = "TAP TO TALK TO ALEX";
+    else if (state === "recognizing") micLabel.innerText = "PROCESSING COMMAND...";
+    else if (state === "speaking") micLabel.innerText = "ALEX RESPONDING...";
+  }
+
   coreFrequency = (82.0 + Math.random() * 8.0).toFixed(1);
   coreFrequencyEl.innerText = `${coreFrequency} GHz`;
 }
@@ -1521,7 +1533,18 @@ function handleClientAction(action) {
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
 
   if (action.type === "open_stocks") {
-    openStocksModal(action.symbol || "NVDA");
+    const sym = action.symbol || "NVDA";
+    if (sym && stockMarketCache[sym]) {
+      selectStock(sym);
+    }
+    if (action.tab === "profile") {
+      switchRightTab("company");
+    } else {
+      switchRightTab("chart");
+    }
+    if (window.innerWidth < 1024) {
+      switchMobileTab("right");
+    }
     return;
   }
   if (action.type === "memory_card") {
@@ -2660,12 +2683,11 @@ async function fetchLiveMarketData() {
 
       renderMarketTicker(list);
       renderStockChips(list);
+      renderRightCompanyChips(list);
 
-      if (stocksModal && stocksModal.classList.contains("active")) {
-        const activeStock = stockMarketCache[currentStockSymbol];
-        if (activeStock) {
-          updateStockHeroUI(activeStock);
-        }
+      const activeStock = stockMarketCache[currentStockSymbol];
+      if (activeStock) {
+        updateStockHeroUI(activeStock);
       }
     }
   } catch (e) {
@@ -2676,7 +2698,181 @@ async function fetchLiveMarketData() {
   }
 }
 
+let activeRightChart = null;
+
+function switchRightTab(tabName) {
+  const tabs = document.querySelectorAll(".right-sub-tab");
+  tabs.forEach(t => {
+    if (t.dataset.tab === tabName) {
+      t.classList.add("active");
+    } else {
+      t.classList.remove("active");
+    }
+  });
+
+  const panes = {
+    "company": document.getElementById("paneCompanyDetails"),
+    "chart": document.getElementById("paneLiveChart"),
+    "feed": document.getElementById("paneTelemetryLog")
+  };
+
+  Object.keys(panes).forEach(k => {
+    if (panes[k]) {
+      if (k === tabName) {
+        panes[k].classList.add("active");
+      } else {
+        panes[k].classList.remove("active");
+      }
+    }
+  });
+
+  if (tabName === "chart") {
+    const curStock = stockMarketCache[currentStockSymbol];
+    if (curStock) {
+      setTimeout(() => updateStockChart(curStock), 60);
+    }
+  }
+}
+
+function switchMobileTab(panelName) {
+  const mobileBtns = document.querySelectorAll(".mobile-tab-btn");
+  mobileBtns.forEach(b => {
+    if (b.dataset.panel === panelName) {
+      b.classList.add("active");
+    } else {
+      b.classList.remove("active");
+    }
+  });
+
+  const grid = document.querySelector(".hud-cockpit-grid");
+  if (grid) {
+    grid.setAttribute("data-mobile-active", panelName);
+  }
+
+  if (panelName === "right") {
+    const curStock = stockMarketCache[currentStockSymbol];
+    if (curStock) {
+      setTimeout(() => updateStockChart(curStock), 60);
+    }
+  }
+}
+
+function renderRightCompanyChips(stocksList) {
+  const container = document.getElementById("rightCompanyChipsRow");
+  if (!container) return;
+  container.innerHTML = "";
+
+  stocksList.forEach(s => {
+    const isPos = s.change >= 0;
+    const chgSign = isPos ? "+" : "";
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `comp-chip-btn ${s.symbol === currentStockSymbol ? 'active' : ''}`;
+    btn.setAttribute("data-symbol", s.symbol);
+    btn.innerHTML = `
+      <span>${s.symbol}</span>
+      <span style="color: ${isPos ? '#10b981' : '#ef4444'}; font-family: monospace; font-size: 10px;">${chgSign}${s.change.toFixed(1)}%</span>
+    `;
+
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".comp-chip-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      selectStock(s.symbol);
+    });
+
+    container.appendChild(btn);
+  });
+}
+
 function updateStockHeroUI(stock) {
+  if (!stock) return;
+  const det = stock.company_details || {};
+  const isPos = stock.change >= 0;
+  const chgSign = isPos ? "+" : "";
+  const currSym = stock.currency || "$";
+
+  // 1. Right Panel Company Details Card
+  const rSym = document.getElementById("rightCompSymbol");
+  const rName = document.getElementById("rightCompName");
+  const rPrice = document.getElementById("rightCompPrice");
+  const rChange = document.getElementById("rightCompChange");
+  const rCeo = document.getElementById("rightCompCeo");
+  const rSector = document.getElementById("rightCompSector");
+  const rHq = document.getElementById("rightCompHq");
+  const rFounded = document.getElementById("rightCompFounded");
+  const rEmployees = document.getElementById("rightCompEmployees");
+  const rBeta = document.getElementById("rightCompBeta");
+  const rMarketCap = document.getElementById("rightCompMarketCap");
+  const rPE = document.getElementById("rightCompPE");
+  const rEPS = document.getElementById("rightCompEPS");
+  const rTarget = document.getElementById("rightCompTarget");
+  const r52Low = document.getElementById("rightComp52Low");
+  const r52High = document.getElementById("rightComp52High");
+  const rRangeFill = document.getElementById("rightCompRangeFill");
+  const rDesc = document.getElementById("rightCompDesc");
+  const rNewsList = document.getElementById("rightCompNewsList");
+
+  if (rSym) rSym.innerText = stock.symbol;
+  if (rName) rName.innerText = stock.name || stock.symbol;
+  if (rPrice) rPrice.innerText = `${currSym}${Number(stock.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  if (rChange) {
+    rChange.className = `comp-change ${isPos ? 'pos' : 'neg'}`;
+    rChange.innerText = `${chgSign}${stock.change.toFixed(2)}% ${isPos ? '▲' : '▼'}`;
+  }
+
+  if (rCeo) rCeo.innerText = `CEO: ${det.ceo || 'Executive Leadership'}`;
+  if (rSector) rSector.innerText = `${det.sector || 'Industry Leader'} • ${det.industry || 'Market Leader'}`;
+  if (rHq) rHq.innerText = det.headquarters || 'USA';
+  if (rFounded) rFounded.innerText = det.founded || 'Established';
+  if (rEmployees) rEmployees.innerText = det.employees || 'Global Staff';
+  if (rBeta) rBeta.innerText = det.beta || '1.05';
+  if (rMarketCap) rMarketCap.innerText = det.market_cap || '$1.0T';
+  if (rPE) rPE.innerText = det.pe_ratio || 'N/A';
+  if (rEPS) rEPS.innerText = det.eps || 'N/A';
+  if (rTarget) rTarget.innerText = det.analyst_target || 'N/A';
+
+  const lowValStr = det.week52_low || `${currSym}${(stock.price * 0.72).toFixed(2)}`;
+  const highValStr = det.week52_high || `${currSym}${(stock.price * 1.28).toFixed(2)}`;
+  if (r52Low) r52Low.innerText = `52W L: ${lowValStr}`;
+  if (r52High) r52High.innerText = `52W H: ${highValStr}`;
+
+  if (rRangeFill) {
+    const rawLow = parseFloat(lowValStr.replace(/[^0-9.]/g, "")) || (stock.price * 0.72);
+    const rawHigh = parseFloat(highValStr.replace(/[^0-9.]/g, "")) || (stock.price * 1.28);
+    const rangeSpan = Math.max(1, rawHigh - rawLow);
+    const pct = Math.max(5, Math.min(95, ((stock.price - rawLow) / rangeSpan) * 100));
+    rRangeFill.style.width = `${pct.toFixed(1)}%`;
+  }
+
+  if (rDesc) rDesc.innerText = det.description || `${stock.name} is a global market leader.`;
+
+  if (rNewsList && Array.isArray(det.news)) {
+    rNewsList.innerHTML = "";
+    det.news.forEach(n => {
+      const card = document.createElement("div");
+      card.className = "news-card-item";
+      card.innerHTML = `
+        <div class="news-card-title">${n.headline}</div>
+        <div class="news-card-meta">${n.source} • ${n.time}</div>
+      `;
+      rNewsList.appendChild(card);
+    });
+  }
+
+  // 2. Right Chart Stats
+  const rStatHigh = document.getElementById("rightStatHigh");
+  const rStatLow = document.getElementById("rightStatLow");
+  const rStatVol = document.getElementById("rightStatVol");
+  const rStatSentiment = document.getElementById("rightStatSentiment");
+  if (rStatHigh) rStatHigh.innerText = `${currSym}${Number(stock.high || stock.price * 1.012).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  if (rStatLow) rStatLow.innerText = `${currSym}${Number(stock.low || stock.price * 0.988).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  if (rStatVol) rStatVol.innerText = stock.volume || "32.5M";
+  if (rStatSentiment) {
+    rStatSentiment.innerText = isPos ? "78% BULLISH" : "62% BEARISH";
+    rStatSentiment.className = `cstat-val ${isPos ? 'green' : 'neg'}`;
+  }
+
+  // 3. Modal Elements (#stocksModal)
   const symEl = document.getElementById("stockHeroSym");
   const nameEl = document.getElementById("stockHeroName");
   const priceEl = document.getElementById("stockHeroPrice");
@@ -2684,94 +2880,184 @@ function updateStockHeroUI(stock) {
   const highEl = document.getElementById("stockStatHigh");
   const lowEl = document.getElementById("stockStatLow");
   const volEl = document.getElementById("stockStatVol");
+  const mCeo = document.getElementById("modalCompCeo");
+  const mSector = document.getElementById("modalCompSector");
+  const mHq = document.getElementById("modalCompHq");
+  const mFounded = document.getElementById("modalCompFounded");
+  const mEmployees = document.getElementById("modalCompEmployees");
+  const mBeta = document.getElementById("modalCompBeta");
+  const mMarketCap = document.getElementById("modalCompMarketCap");
+  const mPE = document.getElementById("modalCompPE");
+  const mEPS = document.getElementById("modalCompEPS");
+  const mTarget = document.getElementById("modalCompTarget");
+  const m52Low = document.getElementById("modalComp52Low");
+  const m52High = document.getElementById("modalComp52High");
+  const mRangeFill = document.getElementById("modalCompRangeFill");
+  const mDesc = document.getElementById("modalCompDesc");
+  const mNewsList = document.getElementById("modalCompNewsList");
 
   if (symEl) symEl.innerText = stock.symbol;
   if (nameEl) nameEl.innerText = stock.name || stock.symbol;
-  if (priceEl) priceEl.innerText = `${stock.currency || "$"}${Number(stock.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-
+  if (priceEl) priceEl.innerText = `${currSym}${Number(stock.price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   if (changeEl) {
-    const isPos = stock.change >= 0;
-    const chgSign = isPos ? "+" : "";
     changeEl.className = `stock-hero-change ${isPos ? 'pos' : 'neg'}`;
     changeEl.innerText = `${chgSign}${stock.change.toFixed(2)}% ${isPos ? '▲' : '▼'}`;
   }
-
-  if (highEl) highEl.innerText = `${stock.currency || "$"}${Number(stock.high || stock.price * 1.012).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-  if (lowEl) lowEl.innerText = `${stock.currency || "$"}${Number(stock.low || stock.price * 0.988).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  if (highEl) highEl.innerText = `${currSym}${Number(stock.high || stock.price * 1.012).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+  if (lowEl) lowEl.innerText = `${currSym}${Number(stock.low || stock.price * 0.988).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
   if (volEl) volEl.innerText = stock.volume || "32.5M";
+
+  if (mCeo) mCeo.innerText = `CEO: ${det.ceo || 'Executive Leadership'}`;
+  if (mSector) mSector.innerText = `${det.sector || 'Industry Leader'} • ${det.industry || 'Market Leader'}`;
+  if (mHq) mHq.innerText = det.headquarters || 'USA';
+  if (mFounded) mFounded.innerText = det.founded || 'Established';
+  if (mEmployees) mEmployees.innerText = det.employees || 'Global Staff';
+  if (mBeta) mBeta.innerText = det.beta || '1.05';
+  if (mMarketCap) mMarketCap.innerText = det.market_cap || '$1.0T';
+  if (mPE) mPE.innerText = det.pe_ratio || 'N/A';
+  if (mEPS) mEPS.innerText = det.eps || 'N/A';
+  if (mTarget) mTarget.innerText = det.analyst_target || 'N/A';
+  if (m52Low) m52Low.innerText = lowValStr;
+  if (m52High) m52High.innerText = highValStr;
+  if (mDesc) mDesc.innerText = det.description || `${stock.name} is a global market leader.`;
+
+  if (mNewsList && Array.isArray(det.news)) {
+    mNewsList.innerHTML = "";
+    det.news.forEach(n => {
+      const card = document.createElement("div");
+      card.className = "news-card-item";
+      card.innerHTML = `
+        <div class="news-card-title">${n.headline}</div>
+        <div class="news-card-meta">${n.source} • ${n.time}</div>
+      `;
+      mNewsList.appendChild(card);
+    });
+  }
 
   updateStockChart(stock);
 }
 
 function updateStockChart(stock) {
-  const canvasEl = document.getElementById("stockChartCanvas");
-  if (!canvasEl) return;
-
   const history = (stock.history && stock.history.length > 1) ? stock.history : [stock.price * 0.98, stock.price * 0.99, stock.price * 1.005, stock.price];
   const labels = history.map((_, i) => `${i * 10}m`);
-
   const isPos = stock.change >= 0;
   const primaryColor = isPos ? "#10b981" : "#ef4444";
   const gradColor = isPos ? "rgba(16, 185, 129, 0.25)" : "rgba(239, 68, 68, 0.25)";
 
-  if (activeStockChart) {
-    activeStockChart.destroy();
-  }
+  // Draw on Right Panel Chart Canvas if visible
+  const rightCanvas = document.getElementById("rightChartCanvas");
+  if (rightCanvas) {
+    if (activeRightChart) activeRightChart.destroy();
+    const ctx = rightCanvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, 180);
+    gradient.addColorStop(0, gradColor);
+    gradient.addColorStop(1, "rgba(0, 0, 0, 0.0)");
 
-  const chartCtx = canvasEl.getContext("2d");
-  const gradient = chartCtx.createLinearGradient(0, 0, 0, 160);
-  gradient.addColorStop(0, gradColor);
-  gradient.addColorStop(1, "rgba(0, 0, 0, 0.0)");
-
-  activeStockChart = new Chart(canvasEl, {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [
-        {
+    activeRightChart = new Chart(rightCanvas, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
           label: `${stock.symbol} Price`,
           data: history,
           borderColor: primaryColor,
           backgroundColor: gradient,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: 0.35,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 250 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.95)",
+            borderColor: primaryColor,
+            borderWidth: 1,
+            titleFont: { family: "JetBrains Mono" },
+            bodyFont: { family: "JetBrains Mono" },
+            callbacks: {
+              label: (ctx) => ` Price: ${stock.currency || "$"}${ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+            }
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: {
+            ticks: {
+              color: "#94a3b8",
+              font: { family: "JetBrains Mono", size: 10 },
+              callback: (val) => `${stock.currency || "$"}${val}`
+            },
+            grid: { color: "rgba(255, 255, 255, 0.05)" }
+          }
+        }
+      }
+    });
+  }
+
+  // Draw on Modal Canvas if active
+  const modalCanvas = document.getElementById("stockChartCanvas");
+  if (modalCanvas && stocksModal && stocksModal.classList.contains("active")) {
+    if (activeStockChart) activeStockChart.destroy();
+    const mCtx = modalCanvas.getContext("2d");
+    const mGrad = mCtx.createLinearGradient(0, 0, 0, 160);
+    mGrad.addColorStop(0, gradColor);
+    mGrad.addColorStop(1, "rgba(0, 0, 0, 0.0)");
+
+    activeStockChart = new Chart(modalCanvas, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: `${stock.symbol} Price`,
+          data: history,
+          borderColor: primaryColor,
+          backgroundColor: mGrad,
           borderWidth: 2.2,
           pointRadius: 0,
           pointHoverRadius: 5,
           pointHoverBackgroundColor: "#ffffff",
           tension: 0.35,
           fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 300 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(15, 23, 42, 0.95)",
+            borderColor: primaryColor,
+            borderWidth: 1,
+            titleFont: { family: "JetBrains Mono" },
+            bodyFont: { family: "JetBrains Mono" },
+            callbacks: {
+              label: (ctx) => ` Price: ${stock.currency || "$"}${ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+            }
+          }
         },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: { duration: 300 },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "rgba(15, 23, 42, 0.95)",
-          borderColor: primaryColor,
-          borderWidth: 1,
-          titleFont: { family: "JetBrains Mono" },
-          bodyFont: { family: "JetBrains Mono" },
-          callbacks: {
-            label: (ctx) => ` Price: ${stock.currency || "$"}${ctx.parsed.y.toLocaleString(undefined, { minimumFractionDigits: 2 })}`
+        scales: {
+          x: { display: false },
+          y: {
+            ticks: {
+              color: "#94a3b8",
+              font: { family: "JetBrains Mono", size: 10 },
+              callback: (val) => `${stock.currency || "$"}${val}`
+            },
+            grid: { color: "rgba(255, 255, 255, 0.05)" }
           }
         }
-      },
-      scales: {
-        x: { display: false },
-        y: {
-          ticks: {
-            color: "#94a3b8",
-            font: { family: "JetBrains Mono", size: 10 },
-            callback: (val) => `${stock.currency || "$"}${val}`
-          },
-          grid: { color: "rgba(255, 255, 255, 0.05)" }
-        }
       }
-    }
-  });
+    });
+  }
 }
 
 function selectStock(sym) {
@@ -2793,6 +3079,93 @@ function openStocksModal(symbol = "NVDA") {
   }
 }
 
+// Left Panel Buttons Wiring
+const optCompBtn = document.getElementById("optCompanyDetailsBtn");
+const optStocksBtn = document.getElementById("optLiveStocksBtn");
+const optPermBtn = document.getElementById("optPermissionsBtn");
+const optPhoneBtn = document.getElementById("optPhoneLinkBtn");
+const optChartsBtn = document.getElementById("optChartsBtn");
+const optCommsBtn = document.getElementById("optCommsBtn");
+const optMemBtn = document.getElementById("optMemoryBtn");
+const optNotesBtn = document.getElementById("optNotesBtn");
+const expandStocksBtn = document.getElementById("expandStocksModalBtn");
+
+if (optCompBtn) {
+  optCompBtn.addEventListener("click", () => {
+    switchRightTab("company");
+    if (window.innerWidth < 1024) switchMobileTab("right");
+    playSciFiBeep("activate");
+  });
+}
+
+if (optStocksBtn) {
+  optStocksBtn.addEventListener("click", () => {
+    switchRightTab("chart");
+    if (window.innerWidth < 1024) switchMobileTab("right");
+    playSciFiBeep("activate");
+  });
+}
+
+if (optPermBtn) optPermBtn.addEventListener("click", openPermissionsModal);
+if (optPhoneBtn) optPhoneBtn.addEventListener("click", openShareModal);
+if (optChartsBtn) optChartsBtn.addEventListener("click", openChartsModal);
+if (optCommsBtn) optCommsBtn.addEventListener("click", openCommsModal);
+if (optMemBtn) optMemBtn.addEventListener("click", () => sendCommand("show memory"));
+if (optNotesBtn) optNotesBtn.addEventListener("click", () => sendCommand("read notes"));
+if (expandStocksBtn) expandStocksBtn.addEventListener("click", () => openStocksModal(currentStockSymbol));
+
+// Mobile Cockpit Tabs Listeners
+document.querySelectorAll(".mobile-tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    switchMobileTab(btn.dataset.panel);
+    playSciFiBeep("activate");
+  });
+});
+
+// Right Panel Sub-Tabs Listeners
+document.querySelectorAll(".right-sub-tab").forEach(btn => {
+  btn.addEventListener("click", () => {
+    switchRightTab(btn.dataset.tab);
+    playSciFiBeep("activate");
+  });
+});
+
+// Modal Sub-Tabs Listeners
+document.querySelectorAll(".modal-tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".modal-tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    const targetTab = btn.dataset.modaltab;
+
+    const modalPanes = {
+      "chart": document.getElementById("modalPaneChart"),
+      "profile": document.getElementById("modalPaneProfile"),
+      "fundamentals": document.getElementById("modalPaneFundamentals"),
+      "news": document.getElementById("modalPaneNews")
+    };
+
+    Object.keys(modalPanes).forEach(k => {
+      if (modalPanes[k]) {
+        if (k === targetTab) modalPanes[k].classList.add("active");
+        else modalPanes[k].classList.remove("active");
+      }
+    });
+
+    if (targetTab === "chart") {
+      const curStock = stockMarketCache[currentStockSymbol];
+      if (curStock) setTimeout(() => updateStockChart(curStock), 60);
+    }
+  });
+});
+
+// Instant Action Chips & Quick Pills
+document.querySelectorAll(".action-chip-btn, .pill-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const cmd = chip.getAttribute("data-cmd");
+    if (cmd) sendCommand(cmd);
+  });
+});
+
 if (openStocksBtn) openStocksBtn.addEventListener("click", () => openStocksModal());
 if (expandMarketBtn) expandMarketBtn.addEventListener("click", () => openStocksModal());
 if (closeStocksModalBtn) closeStocksModalBtn.addEventListener("click", closeModals);
@@ -2800,6 +3173,8 @@ if (closeStocksModalBtn) closeStocksModalBtn.addEventListener("click", closeModa
 // Initial Market Ticker Mount & Periodic Real-Time Fetching
 renderMarketTicker(INITIAL_STOCKS);
 renderStockChips(INITIAL_STOCKS);
+renderRightCompanyChips(INITIAL_STOCKS);
+selectStock("NVDA");
 fetchLiveMarketData();
 setInterval(fetchLiveMarketData, 2800);
 

@@ -473,11 +473,249 @@ DEFAULT_MARKET_DATA = {
     "SPY": {"name": "S&P 500 ETF", "price": 586.40, "change": 0.45, "high": 588.10, "low": 584.20, "volume": "42.0M", "currency": "$", "history": [583.0, 584.5, 585.8, 586.1, 586.4]}
 }
 
+COMPANY_DETAILS = {
+    "NVDA": {
+        "symbol": "NVDA",
+        "name": "NVIDIA Corporation",
+        "ceo": "Jensen Huang",
+        "founded": "1993",
+        "headquarters": "Santa Clara, California, USA",
+        "employees": "29,600+",
+        "sector": "Technology",
+        "industry": "Semiconductors & AI Compute",
+        "market_cap": "$3.45 Trillion",
+        "pe_ratio": "51.8x",
+        "eps": "$4.07",
+        "week52_high": "$144.42",
+        "week52_low": "$75.60",
+        "dividend_yield": "0.03%",
+        "beta": "1.68",
+        "analyst_rating": "Strong Buy (92%)",
+        "analyst_target": "$165.00 (+18%)",
+        "description": "NVIDIA is the global pioneer in accelerated computing. It invented the GPU, CUDA parallel computing architecture, and the Blackwell/Hopper AI supercomputing clusters powering hyperscalers, data centers, and frontier LLMs.",
+        "key_products": ["Blackwell B200 / Hopper H100", "CUDA Architecture", "InfiniBand Quantum Networking", "Omniverse Digital Twins"],
+        "news": [
+            {"headline": "NVIDIA Blackwell Ultra AI Racks Enter Mass Hyperscaler Deployment", "source": "Reuters", "time": "2h ago"},
+            {"headline": "Record Data Center Revenues Fuel Strong Q3 Guidance Across Tech Sector", "source": "Bloomberg", "time": "5h ago"},
+            {"headline": "Enterprise Generative AI Adoption Surges 4x Year-Over-Year", "source": "Financial Times", "time": "8h ago"}
+        ]
+    },
+    "AAPL": {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "ceo": "Tim Cook",
+        "founded": "1976 (Steve Jobs, Steve Wozniak)",
+        "headquarters": "Cupertino, California, USA",
+        "employees": "161,000+",
+        "sector": "Technology",
+        "industry": "Consumer Electronics & Services",
+        "market_cap": "$3.52 Trillion",
+        "pe_ratio": "34.2x",
+        "eps": "$6.59",
+        "week52_high": "$237.23",
+        "week52_low": "$164.08",
+        "dividend_yield": "0.44%",
+        "beta": "1.04",
+        "analyst_rating": "Moderate Buy (78%)",
+        "analyst_target": "$250.00 (+12%)",
+        "description": "Apple designs, manufactures, and markets premium consumer hardware, software, and cloud services worldwide. Revenue is anchored by the iPhone, Mac, iPad, Apple Watch, and high-margin recurring Services subscriptions.",
+        "key_products": ["iPhone 16 Pro & iOS", "Apple Silicon (M3/M4)", "Services (App Store, iCloud, Pay)", "Vision Pro Spatial Computing"],
+        "news": [
+            {"headline": "Apple Intelligence On-Device AI Rollout Sparks Global Upgrade Supercycle", "source": "WSJ", "time": "1h ago"},
+            {"headline": "Services Revenue Hits Record $24.2B with 1 Billion Paid Subscriptions", "source": "CNBC", "time": "4h ago"},
+            {"headline": "Apple Silicon M4 Max Sets New Benchmarks for Pro Video & Local LLMs", "source": "TechCrunch", "time": "7h ago"}
+        ]
+    },
+    "TSLA": {
+        "symbol": "TSLA",
+        "name": "Tesla Inc.",
+        "ceo": "Elon Musk",
+        "founded": "2003 (Led by Elon Musk since 2004)",
+        "headquarters": "Austin, Texas, USA",
+        "employees": "140,473+",
+        "sector": "Consumer Cyclical",
+        "industry": "Electric Vehicles & Clean Energy",
+        "market_cap": "$785 Billion",
+        "pe_ratio": "68.4x",
+        "eps": "$2.41",
+        "week52_high": "$271.00",
+        "week52_low": "$138.80",
+        "dividend_yield": "N/A (Reinvestment)",
+        "beta": "2.32",
+        "analyst_rating": "Hold / Selective Buy",
+        "analyst_target": "$265.00 (+9%)",
+        "description": "Tesla leads the global transition to sustainable transport and energy. It engineers high-volume electric vehicles, solar power systems, utility Megapack battery storage, and physical AI robotics including FSD Autopilot and Optimus.",
+        "key_products": ["Model Y / Model 3 / Cybertruck", "Megapack & Powerwall Energy", "Full Self-Driving (FSD)", "Optimus Humanoid Robot"],
+        "news": [
+            {"headline": "Tesla Megapack Utility Energy Storage Deployments Surge 125% Year-Over-Year", "source": "Electrek", "time": "3h ago"},
+            {"headline": "Full Self-Driving Version 13 Unsupervised Testing Expands Across Key States", "source": "Bloomberg", "time": "6h ago"},
+            {"headline": "Gigafactory Production Optimization Reduces Cost Per Vehicle to Record Low", "source": "Reuters", "time": "10h ago"}
+        ]
+    },
+    "GOOGL": {
+        "symbol": "GOOGL",
+        "name": "Alphabet Inc.",
+        "ceo": "Sundar Pichai",
+        "founded": "1998 (Larry Page, Sergey Brin)",
+        "headquarters": "Mountain View, California, USA",
+        "employees": "179,582+",
+        "sector": "Communication Services",
+        "industry": "Internet Search, Ads & Cloud",
+        "market_cap": "$2.26 Trillion",
+        "pe_ratio": "23.8x",
+        "eps": "$7.54",
+        "week52_high": "$191.75",
+        "week52_low": "$129.40",
+        "dividend_yield": "0.44%",
+        "beta": "1.05",
+        "analyst_rating": "Strong Buy (88%)",
+        "analyst_target": "$205.00 (+14%)",
+        "description": "Alphabet is the holding company of Google, YouTube, Android, Google Cloud Platform (GCP), and DeepMind. It dominates global search and digital advertising while aggressively scaling enterprise cloud and frontier AI research.",
+        "key_products": ["Google Search & YouTube", "Google Cloud Platform (GCP)", "Gemini Frontier AI Models", "Android OS & Waymo Robotaxis"],
+        "news": [
+            {"headline": "Google Cloud Operating Margin Expands to 11% on AI Infrastructure Boom", "source": "Bloomberg", "time": "2h ago"},
+            {"headline": "DeepMind Gemini 2.0 Integration Supercharges Search and Enterprise Workspace", "source": "The Verge", "time": "5h ago"},
+            {"headline": "Waymo Reaches 150,000 Paid Commercial Driverless Trips Per Week Milestone", "source": "Forbes", "time": "9h ago"}
+        ]
+    },
+    "MSFT": {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
+        "ceo": "Satya Nadella",
+        "founded": "1975 (Bill Gates, Paul Allen)",
+        "headquarters": "Redmond, Washington, USA",
+        "employees": "228,000+",
+        "sector": "Technology",
+        "industry": "Enterprise Software & Cloud",
+        "market_cap": "$3.18 Trillion",
+        "pe_ratio": "34.6x",
+        "eps": "$11.80",
+        "week52_high": "$468.35",
+        "week52_low": "$366.50",
+        "dividend_yield": "0.72%",
+        "beta": "0.89",
+        "analyst_rating": "Strong Buy (94%)",
+        "analyst_target": "$490.00 (+10%)",
+        "description": "Microsoft develops software, hardware, services, and cloud solutions worldwide. Key pillars include Azure Cloud infrastructure, Microsoft 365 enterprise productivity, Copilot generative AI tools, GitHub, LinkedIn, and Xbox.",
+        "key_products": ["Microsoft Azure Cloud", "Microsoft 365 & Copilot AI", "Windows 11 OS", "GitHub & LinkedIn"],
+        "news": [
+            {"headline": "Azure Cloud Accelerates Past $35B Annual Run Rate Driven by Enterprise Copilots", "source": "WSJ", "time": "1h ago"},
+            {"headline": "Microsoft 365 Copilot Monthly Active Users Double Quarter-Over-Quarter", "source": "Reuters", "time": "4h ago"},
+            {"headline": "Major Nuclear and Clean Geothermal Power Deals Secure Next-Gen Data Center Capacity", "source": "Financial Times", "time": "8h ago"}
+        ]
+    },
+    "AMZN": {
+        "symbol": "AMZN",
+        "name": "Amazon.com Inc.",
+        "ceo": "Andy Jassy",
+        "founded": "1994 (Jeff Bezos)",
+        "headquarters": "Seattle, Washington, USA",
+        "employees": "1,525,000+",
+        "sector": "Consumer Cyclical",
+        "industry": "E-Commerce & Cloud Computing",
+        "market_cap": "$2.02 Trillion",
+        "pe_ratio": "42.1x",
+        "eps": "$4.25",
+        "week52_high": "$201.20",
+        "week52_low": "$132.80",
+        "dividend_yield": "N/A (Growth)",
+        "beta": "1.15",
+        "analyst_rating": "Strong Buy (96%)",
+        "analyst_target": "$225.00 (+16%)",
+        "description": "Amazon is the world's largest online retailer and cloud computing service provider via Amazon Web Services (AWS). It also operates a massive global logistics network, Prime digital media, and high-margin retail advertising services.",
+        "key_products": ["Amazon Web Services (AWS)", "Amazon Prime & Marketplace", "Custom AI Trainium/Inferentia Chips", "Retail Advertising Network"],
+        "news": [
+            {"headline": "AWS Annual Revenue Run-Rate Hits $105 Billion Powered by Custom Trainium Chips", "source": "CNBC", "time": "2h ago"},
+            {"headline": "Regional Logistics Fulfillment Redesign Accelerates Same-Day Delivery Speed to 70%", "source": "Business Insider", "time": "5h ago"},
+            {"headline": "Amazon Advertising Services Revenue Surges 19% to $14.3 Billion", "source": "AdWeek", "time": "7h ago"}
+        ]
+    },
+    "BTC": {
+        "symbol": "BTC",
+        "name": "Bitcoin USD",
+        "ceo": "Satoshi Nakamoto (Creator)",
+        "founded": "2009 (Genesis Block Jan 3)",
+        "headquarters": "Decentralized (Global Network)",
+        "employees": "Open Source Community",
+        "sector": "Cryptocurrency",
+        "industry": "Digital Store of Value",
+        "market_cap": "$1.58 Trillion",
+        "pe_ratio": "N/A (Commodity/Asset)",
+        "eps": "N/A",
+        "week52_high": "$82,400.00",
+        "week52_low": "$34,800.00",
+        "dividend_yield": "N/A",
+        "beta": "1.92",
+        "analyst_rating": "Bullish Sovereign Asset",
+        "analyst_target": "$100,000.00+",
+        "description": "Bitcoin is the first decentralized, peer-to-peer cryptographic digital currency. Governed by mathematical consensus (Proof of Work) and capped at 21 million coins, it functions as sovereign digital gold and a non-sovereign global store of value.",
+        "key_products": ["Bitcoin Blockchain Core", "Lightning Network Layer 2", "Spot Bitcoin ETFs", "SHA-256 Mining Network"],
+        "news": [
+            {"headline": "Spot Bitcoin ETFs Surpass $30 Billion in Net Inflows Since Regulatory Approval", "source": "CoinDesk", "time": "1h ago"},
+            {"headline": "Global Mining Network Hashrate Hits New Record High Amid Halving Resilience", "source": "Decrypt", "time": "4h ago"},
+            {"headline": "Sovereign Wealth Funds Explore Strategic Treasury Allocations to Digital Gold", "source": "Bloomberg Crypto", "time": "9h ago"}
+        ]
+    },
+    "ETH": {
+        "symbol": "ETH",
+        "name": "Ethereum USD",
+        "ceo": "Vitalik Buterin (Co-founder)",
+        "founded": "2015 (Vitalik Buterin, Gavin Wood)",
+        "headquarters": "Decentralized (Ethereum Foundation)",
+        "employees": "Global Web3 Ecosystem",
+        "sector": "Cryptocurrency",
+        "industry": "Smart Contract Platform",
+        "market_cap": "$330 Billion",
+        "pe_ratio": "N/A (Compute Protocol)",
+        "eps": "N/A",
+        "week52_high": "$4,090.00",
+        "week52_low": "$1,780.00",
+        "dividend_yield": "~3.2% (Staking Yield)",
+        "beta": "2.10",
+        "analyst_rating": "Bullish Smart Contracts",
+        "analyst_target": "$4,200.00",
+        "description": "Ethereum is an open-source, globally decentralized computing platform that pioneers smart contracts. It powers Decentralized Finance (DeFi), tokenized real-world assets (RWAs), NFTs, and scalable Layer-2 rollups like Arbitrum, Base, and Optimism.",
+        "key_products": ["Ethereum Virtual Machine (EVM)", "Proof of Stake Consensus", "Layer 2 Rollup Ecosystem", "DeFi & RWA Protocols"],
+        "news": [
+            {"headline": "Layer-2 Transaction Volume On Base & Arbitrum Exceeds 10x Mainnet Baseline", "source": "Blockworks", "time": "3h ago"},
+            {"headline": "Institutional Tokenized US Treasury Notes On Ethereum Surpass $2.2B AUM", "source": "CoinTelegraph", "time": "6h ago"},
+            {"headline": "Staking Participation Reaches All-Time High with Zero Slashing Incidents", "source": "CryptoSlate", "time": "10h ago"}
+        ]
+    },
+    "SPY": {
+        "symbol": "SPY",
+        "name": "SPDR S&P 500 ETF Trust",
+        "ceo": "State Street Global Advisors (Trustee)",
+        "founded": "1993 (Oldest US ETF)",
+        "headquarters": "Boston, Massachusetts, USA",
+        "employees": "Managed ETF Fund",
+        "sector": "Index ETF",
+        "industry": "Large-Cap Equities Benchmark",
+        "market_cap": "$595 Billion AUM",
+        "pe_ratio": "26.4x (Index Weighted)",
+        "eps": "$248.50 (Index Blended)",
+        "week52_high": "$589.40",
+        "week52_low": "$468.20",
+        "dividend_yield": "1.22%",
+        "beta": "1.00",
+        "analyst_rating": "Overweight US Equities",
+        "analyst_target": "$615.00 (+5%)",
+        "description": "SPY is the world's most widely traded exchange-traded fund. It tracks the benchmark S&P 500 Index composed of the 500 largest public companies in the United States, providing diversified exposure across technology, healthcare, financials, and consumer sectors.",
+        "key_products": ["S&P 500 Index Basket", "Options Liquidity Benchmark", "Top Holdings: AAPL, MSFT, NVDA, AMZN", "Large Cap Growth & Value"],
+        "news": [
+            {"headline": "S&P 500 Blended Earnings Growth Tracking +5.3% for the Quarter", "source": "FactSet", "time": "2h ago"},
+            {"headline": "Broad Market Breadth Improves as Equal-Weight Index Rallies to New Highs", "source": "MarketWatch", "time": "5h ago"},
+            {"headline": "Global Capital Flows Favor US Large-Cap Equities Amid Resilient GDP Growth", "source": "Barron's", "time": "8h ago"}
+        ]
+    }
+}
+
 cached_stock_data = dict(DEFAULT_MARKET_DATA)
 
 def fetch_live_stock_quote(symbol):
     sym = (symbol or "NVDA").upper().strip()
     api_sym = "BTC-USD" if sym in ["BTC", "BITCOIN"] else ("ETH-USD" if sym in ["ETH", "ETHEREUM"] else sym)
+    details = COMPANY_DETAILS.get(sym, COMPANY_DETAILS.get("NVDA"))
 
     try:
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{api_sym}?interval=5m&range=1d"
@@ -506,7 +744,8 @@ def fetch_live_stock_quote(symbol):
                 "low": round(float(low), 2),
                 "volume": DEFAULT_MARKET_DATA.get(sym, {}).get("volume", "25.0M"),
                 "currency": "$",
-                "history": valid_quotes or [round(curr * 0.99, 2), round(curr, 2)]
+                "history": valid_quotes or [round(curr * 0.99, 2), round(curr, 2)],
+                "company_details": details
             }
             cached_stock_data[sym] = result
             return result
@@ -522,6 +761,7 @@ def fetch_live_stock_quote(symbol):
             if len(new_hist) > 25:
                 new_hist.pop(0)
             item["history"] = new_hist
+            item["company_details"] = details
             cached_stock_data[sym] = item
             return item
         return {
@@ -533,7 +773,8 @@ def fetch_live_stock_quote(symbol):
             "low": 99.0,
             "volume": "10.0M",
             "currency": "$",
-            "history": [99.5, 100.0]
+            "history": [99.5, 100.0],
+            "company_details": details
         }
 
 # Command Deduplication & Debounce State
@@ -1257,21 +1498,64 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Fal
         return msg
 
     # ---------------------------------------------------------
-    # Live Stock & Crypto Market Intelligence
+    # Live Stock, Crypto & Company Intelligence
     # ---------------------------------------------------------
+    company_alias = {
+        "apple": "AAPL", "aapl": "AAPL",
+        "nvidia": "NVDA", "nvda": "NVDA",
+        "tesla": "TSLA", "tsla": "TSLA",
+        "google": "GOOGL", "googl": "GOOGL", "alphabet": "GOOGL",
+        "microsoft": "MSFT", "msft": "MSFT",
+        "amazon": "AMZN", "amzn": "AMZN",
+        "bitcoin": "BTC", "btc": "BTC",
+        "ethereum": "ETH", "eth": "ETH",
+        "sp500": "SPY", "s&p": "SPY", "s&p 500": "SPY", "spy": "SPY"
+    }
+
+    # Intent A: Show all companies / company details overview
+    comp_all_m = re.search(r'\b(?:details?\s+of\s+companies|company\s+details?|all\s+companies|companies\s+and\s+all|list\s+companies|corporate\s+profiles?|stock\s+details?)\b', clean)
+    if comp_all_m or clean in ["show details of companies and all", "show details of companies", "details of companies and all", "company details", "details of companies"]:
+        quote = fetch_live_stock_quote("NVDA")
+        last_client_action = {
+            "type": "open_stocks",
+            "symbol": "NVDA",
+            "tab": "profile",
+            "quote": quote,
+            "title": "Corporate Profiles & Market Intelligence"
+        }
+        msg = "Displaying complete company profiles, CEO leadership, and financial fundamentals for NVIDIA, Apple, Microsoft, Tesla, Alphabet, and Amazon in the right intelligence panel."
+        speak_async(msg)
+        return msg
+
+    # Intent B: Specific company details or CEO query
+    comp_detail_m = re.search(r'^(?:show\s+)?(?:tell\s+me\s+about|details?\s+of|about|who\s+is\s+(?:the\s+)?ceo\s+of|profile\s+of|info\s+on|information\s+on|financials?\s+of|valuation\s+of|market\s+cap\s+of)\s+([a-zA-Z0-9_\-\.\s]+)$', clean)
+    if comp_detail_m:
+        raw_sym = comp_detail_m.group(1).strip()
+        sym = company_alias.get(raw_sym.lower(), raw_sym.upper())
+        quote = fetch_live_stock_quote(sym)
+        det = quote.get("company_details") or COMPANY_DETAILS.get(sym, {})
+        last_client_action = {
+            "type": "open_stocks",
+            "symbol": sym,
+            "tab": "profile",
+            "quote": quote,
+            "title": f"Company Profile: {sym}"
+        }
+        ceo_str = f"is led by CEO {det.get('ceo')}" if det.get("ceo") else "is a leading enterprise"
+        mcap_str = f"with a valuation of {det.get('market_cap', '')}" if det.get("market_cap") else ""
+        msg = f"{quote['name']} ({sym}) {ceo_str} {mcap_str}. Headquartered in {det.get('headquarters', 'USA')} focusing on {det.get('industry', 'technology')}."
+        speak_async(msg)
+        return msg
+
     stock_m = re.search(r'^(?:show\s+)?(?:stocks?|market|crypto|shares?|share market|live market)\b|^(?:stock|price of|quote for|check stock|how is)\s+([a-zA-Z0-9_\-\.\s]+)$', clean)
     if stock_m or clean in ["stocks", "stock market", "live stocks", "crypto", "market", "live market", "shares"]:
         raw_sym = (stock_m.group(1).strip() if (stock_m and stock_m.group(1)) else "NVDA") if stock_m else "NVDA"
-        alias = {
-            "apple": "AAPL", "nvidia": "NVDA", "tesla": "TSLA", "google": "GOOGL",
-            "microsoft": "MSFT", "amazon": "AMZN", "bitcoin": "BTC", "ethereum": "ETH",
-            "sp500": "SPY", "s&p": "SPY", "spy": "SPY", "btc": "BTC", "eth": "ETH"
-        }
-        sym = alias.get(raw_sym.lower(), raw_sym.upper())
+        sym = company_alias.get(raw_sym.lower(), raw_sym.upper())
         quote = fetch_live_stock_quote(sym)
         last_client_action = {
             "type": "open_stocks",
             "symbol": sym,
+            "tab": "chart",
             "quote": quote,
             "title": f"Live Market: {sym}"
         }
