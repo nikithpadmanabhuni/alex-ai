@@ -1445,9 +1445,154 @@ async function sendCommand(commandText) {
       if (data.action) handleClientAction(data.action);
     }
   } catch (err) {
-    addLogEntry("system", `Execution error: ${err.message}`);
+    console.log("Server bridge offline, activating Autonomous Client Brain:", err.message);
+    await executeAutonomousClientCommand(cmd);
     setAppState("listening");
   }
+}
+
+async function executeAutonomousClientCommand(rawCmd) {
+  const clean = rawCmd.trim().toLowerCase();
+
+  // Math: Percentages
+  const pct = clean.match(/(\d+(?:\.\d+)?)\s*(?:%|percent)\s+of\s+(\d+(?:\.\d+)?)/);
+  if (pct) {
+    const p = parseFloat(pct[1]), val = parseFloat(pct[2]);
+    const res = (p / 100.0) * val;
+    const msg = `${p}% of ${val} is ${res}`;
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+
+  // Math: Arithmetic
+  for (const prefix of ["calculate", "what is", "compute", "solve"]) {
+    if (clean.startsWith(prefix)) {
+      let expr = clean.replace(prefix, "").trim();
+      expr = expr.replace(/\bplus\b/g, "+").replace(/\bminus\b/g, "-").replace(/\btimes|x|multiplied by\b/g, "*").replace(/\bdivided by\b/g, "/");
+      const m = expr.match(/([0-9\.\s\+\-\*\/\(\)]+)/);
+      if (m && /[+\-*/]/.test(m[1])) {
+        try {
+          const res = Function('"use strict";return (' + m[1] + ')')();
+          const msg = `The result is ${res}`;
+          addLogEntry("alex", msg);
+          playAlexVoice(msg);
+          return;
+        } catch (e) {}
+      }
+    }
+  }
+
+  // Flashlight
+  if (clean.includes("turn on flashlight") || clean.includes("torch on") || clean.includes("flashlight on")) {
+    handleClientAction({ type: "toggle_torch", state: true });
+    const msg = "Flashlight activated on your device.";
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+  if (clean.includes("turn off flashlight") || clean.includes("torch off") || clean.includes("flashlight off")) {
+    handleClientAction({ type: "toggle_torch", state: false });
+    const msg = "Flashlight turned off.";
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+
+  // Timer
+  const tm = clean.match(/(?:timer|alarm)\s+(?:for\s+)?(\d+)?\s*(minute|minutes|min|second|seconds|sec|hour|hours)?/);
+  if (tm) {
+    const dur = parseInt(tm[1] || "5");
+    const unit = tm[2] || "minutes";
+    let sec = dur * 60;
+    if (unit.includes("sec")) sec = dur;
+    else if (unit.includes("hour")) sec = dur * 3600;
+    handleClientAction({ type: "start_timer", seconds: sec, label: `${dur} ${unit}` });
+    const msg = `Timer set for ${dur} ${unit}.`;
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+
+  // Notes
+  const noteSave = clean.match(/^(?:remember|note down|take note|write a note|add note|save note)\s*[:,-]?\s*(.+)$/);
+  if (noteSave) {
+    const noteText = noteSave[1].trim();
+    let notes = [];
+    try { notes = JSON.parse(localStorage.getItem("alex_notes") || "[]"); } catch (e) {}
+    notes.push({ text: noteText, date: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) });
+    localStorage.setItem("alex_notes", JSON.stringify(notes));
+    const content = notes.map((n, i) => `${i + 1}. ${n.text} (${n.date})`).join("\n");
+    handleClientAction({ type: "note_card", content, title: "Notes Vault" });
+    const msg = `Note saved: '${noteText}'`;
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+  if (["read notes", "show notes", "show my notes", "my notes", "notes"].includes(clean)) {
+    let notes = [];
+    try { notes = JSON.parse(localStorage.getItem("alex_notes") || "[]"); } catch (e) {}
+    const content = notes.length ? notes.map((n, i) => `${i + 1}. ${n.text} (${n.date})`).join("\n") : "You have no saved notes.";
+    handleClientAction({ type: "note_card", content, title: "Notes Vault" });
+    const msg = notes.length ? "Displaying your saved notes." : "You have no saved notes.";
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+  if (["clear notes", "delete notes"].includes(clean)) {
+    localStorage.removeItem("alex_notes");
+    handleClientAction({ type: "note_card", content: "All notes have been cleared.", title: "Notes Cleared" });
+    const msg = "All notes have been cleared.";
+    addLogEntry("alex", msg);
+    playAlexVoice(msg);
+    return;
+  }
+
+  // Weather via direct client fetch
+  if (clean.includes("weather")) {
+    try {
+      const wres = await fetch("https://wttr.in/?format=%C+%t+(feels+like+%f)+humidity+%h");
+      const wtext = await wres.text();
+      const msg = `The weather is currently ${wtext.trim()}.`;
+      addLogEntry("alex", msg);
+      playAlexVoice(msg);
+      return;
+    } catch (e) {}
+  }
+
+  // General questions via Wikipedia REST API
+  for (const qp of ["who is ", "who was ", "what is ", "what are ", "tell me about ", "explain ", "define ", "capital of "]) {
+    if (clean.startsWith(qp)) {
+      const topic = clean.replace(qp, "").trim();
+      try {
+        const wres = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`);
+        const wdata = await wres.json();
+        if (wdata.extract) {
+          const sentences = wdata.extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
+          addLogEntry("alex", sentences);
+          playAlexVoice(sentences);
+          return;
+        }
+      } catch (e) {}
+    }
+  }
+
+  // Explicit Google search
+  for (const sp of ["search google for ", "search on google for ", "google for ", "google "]) {
+    if (clean.startsWith(sp)) {
+      const query = clean.replace(sp, "").trim();
+      handleClientAction({ type: "open_url", url: `https://www.google.com/search?q=${encodeURIComponent(query)}`, app: "Google", title: `Google: '${query}'` });
+      const msg = `Searching Google for '${query}'.`;
+      addLogEntry("alex", msg);
+      playAlexVoice(msg);
+      return;
+    }
+  }
+
+  // Default fallback
+  const fallbackMsg = `I processed '${rawCmd}'. Alex neural interface online.`;
+  addLogEntry("alex", fallbackMsg);
+  playAlexVoice(fallbackMsg);
 }
 
 // Form submission

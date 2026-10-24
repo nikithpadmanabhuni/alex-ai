@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#030712">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ALEX // NEURAL INTERFACE</title>
+  <link rel="stylesheet" href="static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Chart.js for Advanced Holographic Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="hud-scanlines"></div>
+  <div class="hud-vignette"></div>
+
+  <!-- Main Container -->
+  <div class="jarvis-container">
+    
+    <!-- Top Telemetry Header -->
+    <header class="hud-header">
+      <div class="header-left">
+        <div class="logo-group">
+          <div class="cyber-badge">V-AI</div>
+          <h1 class="hud-title">A.L.E.X.</h1>
+          <span class="hud-subtitle">NEURAL CONTROLLER</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="status-pill" id="statusPill">
+          <span class="pulsing-orb"></span>
+          <span id="statusText">ALEX ONLINE // CALL ME ANYTIME</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Target Device Toggle: Phone vs Laptop -->
+        <button class="nav-btn target-device-btn" id="targetDeviceBtn" title="Toggle Execution Target (Phone vs Laptop)">
+          <span class="btn-icon" id="targetDeviceIcon">📱</span>
+          <span id="targetDeviceLabel">TARGET: PHONE</span>
+        </button>
+
+        <!-- Access Controls: Permissions, Phone Link, Charts & Texting -->
+        <button class="nav-btn permissions-btn" id="openPermissionsBtn" title="System Access & Neural Permissions">
+          <span class="btn-icon">🛡️</span>
+          <span id="permBtnText">SYSTEM ACCESS</span>
+        </button>
+        <button class="nav-btn phone-link-btn" id="openShareBtn" title="Get Public Phone Link & QR Code">
+          <span class="btn-icon">🌐</span>
+          <span>PHONE LINK</span>
+        </button>
+        <button class="nav-btn" id="openChartsBtn" title="Open Charts Dashboard">
+          <span class="btn-icon">📊</span>
+          <span>CHARTS</span>
+        </button>
+        <button class="nav-btn" id="openCommsBtn" title="Open Texting & Messaging Hub">
+          <span class="btn-icon">💬</span>
+          <span>TEXT OTHERS</span>
+        </button>
+
+        <div class="telemetry-badge" id="batteryBadge">
+          <span class="icon">⚡</span>
+          <span id="batteryVal">BAT: --%</span>
+        </div>
+        <div class="telemetry-badge" id="clockBadge">
+          <span id="clockVal">00:00:00</span>
+        </div>
+        <button class="icon-btn" id="micToggleBtn" title="Toggle Microphone">
+          <span id="micIcon">🎙️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Center Stage: Arc Reactor Particle Sphere -->
+    <main class="hud-main">
+      <div class="particle-stage-container">
+        <!-- Canvas for Dynamic Particle Reactor -->
+        <canvas id="particleCanvas"></canvas>
+        
+        <!-- Center Hologram Overlay Info -->
+        <div class="reactor-core-info">
+          <div class="core-label">AI WAKE WORD</div>
+          <div class="core-status" id="coreStatus">"ALEX"</div>
+          <div class="core-frequency" id="coreFrequency">84.2 GHz</div>
+        </div>
+      </div>
+
+      <!-- Live Voice Waveform Visualizer -->
+      <div class="waveform-container">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </main>
+
+    <!-- Holographic Feed / Transcript -->
+    <section class="hud-feed-section">
+      <div class="feed-header">
+        <span class="feed-title">ALEX TELEMETRY LOG</span>
+        <span class="feed-tag">WAKE_WORD: "ALEX"</span>
+      </div>
+      <div class="feed-log" id="feedLog">
+        <div class="log-entry system">
+          <span class="timestamp">[SYS_INIT]</span>
+          <span class="text">Alex Neural Core active. Call "Alex" or say "type in WhatsApp...", "type in Google..." anytime!</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Action Chips -->
+    <div class="quick-chips">
+      <button class="chip" data-cmd="Alex">👋 "Alex"</button>
+      <button class="chip" data-cmd="system access">🛡️ System Access</button>
+      <button class="chip" data-cmd="show phone link">🌐 Phone Link</button>
+      <button class="chip" data-cmd="type in WhatsApp Hello! How are you doing?">💬 Type in WhatsApp</button>
+      <button class="chip" data-cmd="type in Google Best tech news today">🔍 Type in Google</button>
+      <button class="chip" data-cmd="open chrome">🚀 Chrome</button>
+      <button class="chip" data-cmd="show charts">📊 Open Charts</button>
+      <button class="chip" data-cmd="open texting">💬 Text Others</button>
+      <button class="chip" data-cmd="volume up">🔊 Volume +</button>
+      <button class="chip" data-cmd="screenshot">📸 Screenshot</button>
+      <button class="chip" data-cmd="dark mode">🌓 Dark Mode</button>
+    </div>
+
+    <!-- Bottom Command Input Bar with Dedicated Mobile Voice Control -->
+    <footer class="hud-footer">
+      <!-- Device Target Selector Bar -->
+      <div class="device-target-bar">
+        <span class="target-bar-label">EXECUTION TARGET:</span>
+        <div class="target-pills-group">
+          <button type="button" class="target-pill-btn active" id="targetPhoneBtn" data-target="phone">
+            <span class="pill-icon">📱</span> THIS PHONE
+          </button>
+          <button type="button" class="target-pill-btn" id="targetLaptopBtn" data-target="laptop">
+            <span class="pill-icon">💻</span> LAPTOP
+          </button>
+        </div>
+      </div>
+
+      <div class="mobile-voice-bar">
+        <button type="button" class="mobile-mic-btn" id="mobileMicBtn" title="Tap to Talk to Alex">
+          <span class="mic-pulse-ring"></span>
+          <span class="mic-icon-symbol">🎙️</span>
+          <span class="mic-btn-label" id="micBtnLabel">TAP TO TALK TO ALEX</span>
+        </button>
+      </div>
+
+      <form id="commandForm" class="command-box">
+        <button type="button" class="inline-mic-btn" id="inlineMicBtn" title="Speak Voice Command">🎙️</button>
+        <span class="prompt-arrow">❯</span>
+        <input 
+          type="text" 
+          id="commandInput" 
+          placeholder="Speak or type (e.g. 'Alex type in WhatsApp hello', 'search Google')..." 
+          autocomplete="off"
+        />
+        <button type="submit" class="send-btn">
+          <span>EXECUTE</span>
+          <span class="btn-glow"></span>
+        </button>
+      </form>
+    </footer>
+
+  </div>
+
+  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
+  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
+
+  <!-- ========================================================= -->
+  <!-- FLOATING VOICE LISTENING OVERLAY FOR PHONES & DESKTOP     -->
+  <!-- ========================================================= -->
+  <div class="hud-listening-overlay" id="listeningOverlay">
+    <div class="listening-card">
+      <div class="listening-ripple"></div>
+      <div class="listening-icon">🎙️</div>
+      <div class="listening-title">ALEX IS LISTENING...</div>
+      <div class="listening-transcript" id="listeningTranscript">Speak your task clearly now (e.g. "type in WhatsApp...", "open Chrome")</div>
+      <div class="listening-bars">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="listening-actions">
+        <button type="button" class="listening-btn stop" id="listeningStopBtn">DONE SPEAKING ✓</button>
+        <button type="button" class="listening-btn cancel" id="listeningCancelBtn">CANCEL ✕</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
+  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
+
+  <!-- ========================================================= -->
+  <!-- MODAL 1: HOLOGRAPHIC CHARTS & ANALYTICS DASHBOARD -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="chartsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">ANALYTICS // VISUALIZER</span>
+          <h2>ALEX TELEMETRY CHARTS</h2>
+        </div>
+        <button class="close-btn" id="closeChartsBtn">✕</button>
+      </div>
+
+      <!-- Chart Switcher Tabs -->
+      <div class="chart-tabs">
+        <button class="tab-btn active" data-chart="system">⚡ Live System Telemetry</button>
+        <button class="tab-btn" data-chart="market">📈 Tech & Crypto Index</button>
+        <button class="tab-btn" data-chart="activity">📊 Productivity & Tasks</button>
+      </div>
+
+      <div class="chart-canvas-wrap">
+        <canvas id="analyticsChart"></canvas>
+      </div>
+
+      <div class="chart-footer-info">
+        <span>💡 Voice tip: Say <em>"Alex show charts"</em> or <em>"close charts"</em> anytime.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
+  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
+
+  <!-- ========================================================= -->
+  <!-- MODAL 2: NEURAL COMMS & TEXTING HUB -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="commsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">COMMS // DIRECT BRIDGE</span>
+          <h2>TEXT OTHERS & MESSAGING</h2>
+        </div>
+        <button class="close-btn" id="closeCommsBtn">✕</button>
+      </div>
+
+      <form id="commsForm" class="comms-form">
+        <div class="form-group">
+          <label>SELECT PLATFORM</label>
+          <div class="platform-selector">
+            <label class="platform-opt">
+              <input type="radio" name="platform" value="whatsapp" checked>
+              <span class="opt-pill">🟢 WhatsApp</span>
+            </label>
+            <label class="platform-opt">
+              <input type="radio" name="platform" value="imessage">
+              <span class="opt-pill">💬 iMessage / SMS</span>
+            </label>
+            <label class="platform-opt">
+              <input type="radio" name="platform" value="mail">
+              <span class="opt-pill">✉️ Mail / Email</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>RECIPIENT (PHONE NUMBER, CONTACT, OR EMAIL)</label>
+          <input 
+            type="text" 
+            id="commRecipient" 
+            class="cyber-input" 
+            placeholder="e.g. +1234567890 or John Doe or test@gmail.com" 
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label>MESSAGE CONTENT</label>
+          <textarea 
+            id="commMessage" 
+            class="cyber-textarea" 
+            rows="3" 
+            placeholder="Enter the message you want Alex to send..." 
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="cyber-submit-btn">
+            <span>🚀 TRANSMIT MESSAGE</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="comms-footer-info">
+        <span>💡 Voice tip: Say <em>"Alex text [number] hello on WhatsApp"</em> or <em>"type in WhatsApp [message]"</em>.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
+  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
+
+  <!-- ========================================================= -->
+  <!-- MODAL 3: PUBLIC REMOTE & SMARTPHONE ACCESS (QR + HTTPS)  -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="shareModal">
+    <div class="modal-card phone-share-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge">REMOTE BRIDGE // WORLDWIDE</span>
+          <h2>ALEX SMARTPHONE & REMOTE ACCESS</h2>
+        </div>
+        <button class="close-btn" id="closeShareBtn">✕</button>
+      </div>
+
+      <div class="share-modal-body">
+        <div class="qr-code-wrapper">
+          <div class="qr-code-glow">
+            <img id="shareQrCode" src="" alt="Scan QR Code to Open Alex" />
+          </div>
+          <p class="qr-caption">Scan with iPhone or Android camera</p>
+        </div>
+
+        <div class="share-details">
+          <div class="share-info-block">
+            <div class="share-badge-status">
+              <span class="pulsing-orb"></span>
+              <span id="tunnelStatusText">SECURE PUBLIC CLOUDFLARE HTTPS TUNNEL ACTIVE</span>
+            </div>
+            <p class="share-explainer">
+              This link works on <strong>any iPhone, Android, or PC on any Wi-Fi or mobile data network worldwide</strong>. Full microphone, voice recognition, universal typing, and system telemetry are fully enabled over secure HTTPS.
+            </p>
+          </div>
+
+          <div class="url-copy-group">
+            <label>🌐 PUBLIC HTTPS LINK (WORLDWIDE / ALL PHONES):</label>
+            <div class="copy-input-row">
+              <input type="text" id="sharePublicUrl" readonly value="Generating secure tunnel..." />
+              <button type="button" class="copy-btn" id="copyPublicUrlBtn">COPY LINK</button>
+              <a href="#" id="openPhoneLinkAnchor" target="_blank" class="open-link-btn" title="Open in new browser tab">OPEN ↗</a>
+            </div>
+          </div>
+
+          <div class="url-copy-group local-row">
+            <label>🏠 LOCAL WI-FI LINK (SAME NETWORK):</label>
+            <div class="copy-input-row">
+              <input type="text" id="shareLocalUrl" readonly value="Detecting local IP..." />
+              <button type="button" class="copy-btn secondary" id="copyLocalUrlBtn">COPY</button>
+            </div>
+          </div>
+
+          <div class="phone-feature-tags">
+            <span class="feat-tag">⚡ Zero Setup</span>
+            <span class="feat-tag">🎙️ Mobile Voice Mic</span>
+            <span class="feat-tag">💬 WhatsApp & Search</span>
+            <span class="feat-tag">📊 Live Charts</span>
+            <span class="feat-tag">🔒 End-to-End SSL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="share-footer-info">
+        <span>💡 Voice tip: Say <em>"Alex show phone link"</em> or <em>"Alex QR code"</em> anytime.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
+  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
+
+  <!-- ========================================================= -->
+  <!-- MODAL 4: SYSTEM ACCESS & NEURAL PERMISSIONS INITIALIZER   -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="permissionsModal">
+    <div class="modal-card permissions-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge warning-badge">SECURITY PROTOCOL // SYSTEM INITIALIZATION</span>
+          <h2>NEURAL SYSTEM ACCESS & PERMISSIONS</h2>
+        </div>
+        <button class="close-btn" id="closePermissionsBtn">✕</button>
+      </div>
+
+      <div class="permissions-explainer">
+        <p>Grant system authorizations to unlock universal typing across WhatsApp, Google, YouTube, and real-time voice control on this device.</p>
+      </div>
+
+      <div class="permissions-grid">
+        <!-- Card 1: Mic -->
+        <div class="perm-card" id="permCardMic">
+          <div class="perm-icon-box">🎙️</div>
+          <div class="perm-content">
+            <div class="perm-header-row">
+              <h3>MICROPHONE ACCESS</h3>
+              <span class="perm-status-tag" id="tagMicStatus">PENDING</span>
+            </div>
+            <p>Required for voice listening, wake word detection ("Alex"), and real-time audio reactivity.</p>
+            <button type="button" class="perm-action-btn" id="grantMicBtn">ALLOW MICROPHONE</button>
+          </div>
+        </div>
+
+        <!-- Card 2: Audio FX -->
+        <div class="perm-card" id="permCardAudio">
+          <div class="perm-icon-box">🔊</div>
+          <div class="perm-content">
+            <div class="perm-header-row">
+              <h3>AUDIO SYNTHESIZER</h3>
+              <span class="perm-status-tag" id="tagAudioStatus">PENDING</span>
+            </div>
+            <p>Unlocks Web Audio API, holographic sci-fi UI beeps, wake chimes, and voice playback.</p>
+            <button type="button" class="perm-action-btn" id="grantAudioBtn">ACTIVATE AUDIO</button>
+          </div>
+        </div>
+
+        <!-- Card 3: macOS Universal Control & Accessibility -->
+        <div class="perm-card" id="permCardAccessibility">
+          <div class="perm-icon-box">⌨️</div>
+          <div class="perm-content">
+            <div class="perm-header-row">
+              <h3>UNIVERSAL ACCESSIBILITY CONTROL</h3>
+              <span class="perm-status-tag" id="tagAccessStatus">VERIFYING...</span>
+            </div>
+            <p>Required on macOS for Alex to automatically type in WhatsApp, Google, YouTube, and control apps.</p>
+            <button type="button" class="perm-action-btn" id="grantAccessibilityBtn">VERIFY SYSTEM CONTROL</button>
+          </div>
+        </div>
+
+        <!-- Card 4: Screen & Automation Bridge -->
+        <div class="perm-card" id="permCardScreen">
+          <div class="perm-icon-box">📸</div>
+          <div class="perm-content">
+            <div class="perm-header-row">
+              <h3>SCREEN & AUTOMATION</h3>
+              <span class="perm-status-tag" id="tagScreenStatus">READY</span>
+            </div>
+            <p>Enables taking screenshots, controlling volume, dark mode toggling, and telemetry polling.</p>
+            <button type="button" class="perm-action-btn" id="grantScreenBtn">OPEN SETTINGS</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Master Action Button -->
+      <div class="perm-master-action">
+        <button type="button" class="perm-master-btn" id="grantAllPermsBtn">
+          <span>⚡ GRANT ALL PERMISSIONS & INITIALIZE ALEX</span>
+        </button>
+        <span class="perm-subtext">Click to authorize all device sensors and activate real-time neural automation.</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="static/app.js"></script>
+</body>
+</html>
