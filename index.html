@@ -7,6 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>ALEX // NEURAL INTERFACE</title>
+  <link rel="canonical" href="https://named-here-hold-garlic.trycloudflare.com">
+  <meta property="og:title" content="Alex AI — Autonomous Neural Intelligence Cockpit">
+  <meta property="og:description" content="Talk to Alex anywhere in the world over secure HTTPS. Universal question-answering, live stocks, voice control, system automation.">
+  <meta property="og:url" content="https://named-here-hold-garlic.trycloudflare.com">
+  <meta property="og:type" content="website">
   <link rel="stylesheet" href="/static/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -665,7 +670,7 @@
       <div class="share-modal-body">
         <div class="qr-code-wrapper">
           <div class="qr-code-glow">
-            <img id="shareQrCode" src="" alt="Scan QR Code to Open Alex" />
+            <img id="shareQrCode" src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https%3A%2F%2Fnamed-here-hold-garlic.trycloudflare.com&bgcolor=070d18&color=00f0ff&margin=1" alt="Scan QR Code to Open Alex on Phone" />
           </div>
           <p class="qr-caption">Scan with iPhone or Android camera</p>
         </div>
@@ -682,19 +687,19 @@
           </div>
 
           <div class="url-copy-group">
-            <label>🌐 PUBLIC HTTPS LINK (WORLDWIDE / ALL PHONES):</label>
+            <label for="sharePublicUrl">🌐 PUBLIC HTTPS LINK (WORLDWIDE / ALL PHONES):</label>
             <div class="copy-input-row">
-              <input type="text" id="sharePublicUrl" readonly value="Generating secure tunnel..." />
-              <button type="button" class="copy-btn" id="copyPublicUrlBtn">COPY LINK</button>
-              <a href="#" id="openPhoneLinkAnchor" target="_blank" class="open-link-btn" title="Open in new browser tab">OPEN ↗</a>
+              <input type="text" id="sharePublicUrl" readonly value="https://named-here-hold-garlic.trycloudflare.com" aria-label="Alex Public HTTPS Website Link" />
+              <button type="button" class="copy-btn" id="copyPublicUrlBtn" aria-label="Copy Public Website Link">COPY LINK</button>
+              <a href="https://named-here-hold-garlic.trycloudflare.com" id="openPhoneLinkAnchor" target="_blank" rel="noopener noreferrer" class="open-link-btn" title="Open in new browser tab" aria-label="Open Public Website Link">OPEN ↗</a>
             </div>
           </div>
 
           <div class="url-copy-group local-row">
-            <label>🏠 LOCAL WI-FI LINK (SAME NETWORK):</label>
+            <label for="shareLocalUrl">🏠 LOCAL WI-FI LINK (SAME NETWORK):</label>
             <div class="copy-input-row">
-              <input type="text" id="shareLocalUrl" readonly value="Detecting local IP..." />
-              <button type="button" class="copy-btn secondary" id="copyLocalUrlBtn">COPY</button>
+              <input type="text" id="shareLocalUrl" readonly value="http://192.168.0.121:5005" aria-label="Alex Local Wi-Fi Website Link" />
+              <button type="button" class="copy-btn secondary" id="copyLocalUrlBtn" aria-label="Copy Local Wi-Fi Website Link">COPY</button>
             </div>
           </div>
 
