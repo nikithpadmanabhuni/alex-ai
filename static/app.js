@@ -1567,10 +1567,42 @@ function renderMemoryCard(content, title) {
   feedLog.scrollTop = feedLog.scrollHeight;
 }
 
+function renderKnowledgeCard(action) {
+  if (!feedLog) return;
+  const div = document.createElement("div");
+  div.className = "log-entry phone-action-card knowledge-feed-card";
+  const cat = action.category || "WORLD KNOWLEDGE ENCYCLOPEDIA";
+  const title = action.title || "OmniBrain Dossier";
+  const content = action.content || "";
+  const url = action.url;
+
+  div.innerHTML = `
+    <div class="action-card-header">
+      <span class="action-card-badge">🧠 ${cat}</span>
+      <span class="action-card-app">${title}</span>
+    </div>
+    <div class="action-card-body" style="padding: 12px 14px;">
+      <h3 style="font-family: var(--font-display); font-size: 14px; font-weight: 800; color: #ffffff; margin-bottom: 6px; letter-spacing: 0.5px;">
+        ${title}
+      </h3>
+      <div style="font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: #e2e8f0; margin-bottom: 8px;">
+        ${content}
+      </div>
+      ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="knowledge-card-link-btn">READ COMPLETE ENCYCLOPEDIC DOSSIER ↗</a>` : ''}
+    </div>
+  `;
+  feedLog.appendChild(div);
+  feedLog.scrollTop = feedLog.scrollHeight;
+}
+
 function handleClientAction(action) {
   if (!action) return;
   const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
 
+  if (action.type === "knowledge_card") {
+    renderKnowledgeCard(action);
+    return;
+  }
   if (action.type === "open_stocks") {
     const sym = action.symbol || "NVDA";
     if (sym && stockMarketCache[sym]) {
@@ -2037,21 +2069,32 @@ async function executeAutonomousClientCommand(rawCmd) {
     } catch (e) {}
   }
 
-  // General questions via Wikipedia REST API
-  for (const qp of ["who is ", "who was ", "what is ", "what are ", "tell me about ", "explain ", "define ", "capital of "]) {
-    if (clean.startsWith(qp)) {
-      const topic = clean.replace(qp, "").trim();
-      try {
-        const wres = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic)}`);
-        const wdata = await wres.json();
-        if (wdata.extract) {
-          const sentences = wdata.extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
+  // General questions via Wikipedia Search & Summary
+  const cleanQ = clean.replace(/^(?:alex|hey alex|please|tell me about|tell me|what is the|what is|what are the|what are|who was the|who was|who is the|who is|explain the|explain|how does|why is)\s+/i, "").replace(/\?+$/, "").trim();
+  if (cleanQ.length > 2) {
+    try {
+      const searchRes = await fetch(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQ)}&origin=*&format=json&srlimit=2`);
+      const sData = await searchRes.json();
+      const results = sData?.query?.search || [];
+      if (results.length > 0) {
+        const topTitle = results[0].title;
+        const sumRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topTitle)}`);
+        const sumData = await sumRes.json();
+        if (sumData.extract) {
+          const sentences = sumData.extract.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ");
           addLogEntry("alex", sentences);
           playAlexVoice(sentences);
+          handleClientAction({
+            type: "knowledge_card",
+            title: topTitle,
+            category: "GLOBAL KNOWLEDGE ENCYCLOPEDIA",
+            content: sumData.extract,
+            url: `https://en.wikipedia.org/wiki/${encodeURIComponent(topTitle)}`
+          });
           return;
         }
-      } catch (e) {}
-    }
+      }
+    } catch (e) {}
   }
 
   // Explicit Google search

@@ -15,6 +15,7 @@ import hashlib
 import tempfile
 import uuid
 import random
+import math
 from flask import Flask, render_template, request, jsonify, Response, send_file
 try:
     import speech_recognition as sr
@@ -343,70 +344,356 @@ def query_openjarvis(prompt):
     return None
 
 # ---------------------------------------------------------
-# Autonomous Alex Brain (OpenJarvis + DuckDuckGo + Wikipedia)
-# Direct answers without opening Chrome / Google tabs
+# OmniBrain: Universal Knowledge & World Intelligence Engine
+# Can answer anything in the world (Science, Atlas, History,
+# Mathematics, Lexicon, Computing, Universe, Weather)
 # ---------------------------------------------------------
-def ask_alex_brain(query):
-    clean_q = query.strip()
-    for prefix in ["who is ", "who was ", "what is ", "what are ", "what was ", "tell me about ", "explain ", "define ", "capital of ", "how does ", "why is ", "search for ", "search "]:
-        if clean_q.lower().startswith(prefix):
-            clean_q = clean_q[len(prefix):].strip()
-            break
+WORLD_FACTS = {
+    "speed of light": "The speed of light in a vacuum is exactly 299,792,458 meters per second, or approximately 300,000 kilometers per second (186,282 miles per second).",
+    "distance to the moon": "The average distance from the Earth to the Moon is approximately 384,400 kilometers (238,855 miles).",
+    "distance to moon": "The average distance from the Earth to the Moon is approximately 384,400 kilometers (238,855 miles).",
+    "distance to the sun": "The average distance from the Earth to the Sun is approximately 149.6 million kilometers (93 million miles), defined as 1 Astronomical Unit.",
+    "distance to sun": "The average distance from the Earth to the Sun is approximately 149.6 million kilometers (93 million miles), defined as 1 Astronomical Unit.",
+    "highest mountain": "Mount Everest is the highest mountain on Earth above sea level, standing at 8,848.86 meters (29,031.7 feet) in the Himalayas.",
+    "tallest mountain": "Mount Everest is the highest mountain on Earth above sea level, standing at 8,848.86 meters (29,031.7 feet) in the Himalayas.",
+    "deepest ocean": "The Mariana Trench in the western Pacific Ocean is the deepest oceanic trench on Earth, reaching a depth of approximately 10,994 meters (36,070 feet) at Challenger Deep.",
+    "deepest trench": "The Mariana Trench in the western Pacific Ocean is the deepest oceanic trench on Earth, reaching a depth of approximately 10,994 meters (36,070 feet) at Challenger Deep.",
+    "longest river": "The Nile River in northeastern Africa is traditionally considered the longest river in the world at approximately 6,650 kilometers (4,132 miles), while the Amazon River has the greatest water discharge volume.",
+    "largest ocean": "The Pacific Ocean is the largest and deepest ocean on Earth, covering more than 63 million square miles (over 30% of the Earth's surface).",
+    "largest desert": "The Antarctic Polar Desert is the largest desert on Earth, covering 14.2 million square kilometers, while the Sahara is the largest hot desert.",
+    "absolute zero": "Absolute zero is the theoretical lowest temperature possible, where molecular motion ceases: 0 Kelvin, -273.15 degrees Celsius, or -459.67 degrees Fahrenheit.",
+    "gravity of earth": "Earth's standard surface gravity is approximately 9.807 meters per second squared (32.17 feet per second squared).",
+    "value of pi": "Pi is a mathematical constant defined as the ratio of a circle's circumference to its diameter, approximately 3.14159265359.",
+    "bones in the human body": "An adult human body has 206 bones, while an infant is born with roughly 270 bones that fuse together over time.",
+    "human body temperature": "Normal resting human core body temperature is typically around 37 degrees Celsius or 98.6 degrees Fahrenheit.",
+    "theory of relativity": "Einstein's Theory of Relativity encompasses Special Relativity (physics laws are identical for all non-accelerating observers and speed of light is constant) and General Relativity (gravity arises from the curvature of spacetime caused by mass).",
+    "speed of sound": "The speed of sound in dry air at 20 degrees Celsius is approximately 343 meters per second (1,125 feet per second, or 767 miles per hour).",
+    "largest planet": "Jupiter is the largest planet in our solar system, with a mass more than two and a half times that of all other planets combined.",
+    "smallest planet": "Mercury is the smallest planet in our solar system and the closest to the Sun.",
+    "age of the universe": "The universe is estimated to be approximately 13.8 billion years old based on measurements of cosmic microwave background radiation.",
+    "age of the earth": "Earth is estimated to be approximately 4.54 billion years old, verified by radiometric dating of meteorites and lunar samples.",
+    "first person on the moon": "Neil Armstrong was the first person to walk on the Moon on July 20, 1969, during the Apollo 11 mission.",
+    "first human in space": "Yuri Gagarin was the first human to journey into outer space, completing one orbit of Earth aboard Vostok 1 on April 12, 1961."
+}
 
-    broadcast_event({"type": "thought", "text": f"Analyzing '{clean_q}' using local cognitive reasoning..."})
+COUNTRY_CAPITALS = {
+    "australia": "Canberra",
+    "france": "Paris",
+    "japan": "Tokyo",
+    "canada": "Ottawa",
+    "germany": "Berlin",
+    "italy": "Rome",
+    "united kingdom": "London",
+    "uk": "London",
+    "united states": "Washington, D.C.",
+    "usa": "Washington, D.C.",
+    "us": "Washington, D.C.",
+    "india": "New Delhi",
+    "china": "Beijing",
+    "russia": "Moscow",
+    "brazil": "Brasília",
+    "spain": "Madrid",
+    "mexico": "Mexico City",
+    "egypt": "Cairo",
+    "south africa": "Pretoria (administrative), Cape Town (legislative), Bloemfontein (judicial)",
+    "argentina": "Buenos Aires",
+    "south korea": "Seoul",
+    "switzerland": "Bern",
+    "sweden": "Stockholm",
+    "norway": "Oslo",
+    "finland": "Helsinki",
+    "denmark": "Copenhagen",
+    "netherlands": "Amsterdam",
+    "belgium": "Brussels",
+    "austria": "Vienna",
+    "poland": "Warsaw",
+    "greece": "Athens",
+    "portugal": "Lisbon",
+    "ireland": "Dublin",
+    "turkey": "Ankara",
+    "saudi arabia": "Riyadh",
+    "uae": "Abu Dhabi",
+    "united arab emirates": "Abu Dhabi",
+    "thailand": "Bangkok",
+    "indonesia": "Jakarta",
+    "singapore": "Singapore",
+    "new zealand": "Wellington",
+    "vietnam": "Hanoi",
+    "philippines": "Manila",
+    "malaysia": "Kuala Lumpur",
+    "israel": "Jerusalem",
+    "chile": "Santiago",
+    "colombia": "Bogotá",
+    "peru": "Lima",
+    "pakistan": "Islamabad",
+    "bangladesh": "Dhaka",
+    "ukraine": "Kyiv",
+    "iran": "Tehran",
+    "iraq": "Baghdad",
+    "morocco": "Rabat",
+    "nigeria": "Abuja",
+    "kenya": "Nairobi"
+}
 
-    # 0. OpenJarvis Local On-Device AI inference
+def solve_unit_conversion(clean_cmd):
+    m = re.search(r'(?:convert\s+)?([0-9\.]+)\s*([a-zA-Z°]+)\s+(?:to|in|into)\s+([a-zA-Z°]+)', clean_cmd)
+    if not m:
+        return None
     try:
-        oj_ans = query_openjarvis(clean_q)
-        if oj_ans and len(oj_ans.strip()) > 10:
-            sentences = re.split(r'(?<=[.!?])\s+', oj_ans.strip())
-            return " ".join(sentences[:2])
+        val = float(m.group(1))
+        u1 = m.group(2).lower()
+        u2 = m.group(3).lower()
+        
+        # Distance
+        if (u1 in ["miles", "mile", "mi"] and u2 in ["km", "kilometers", "kilometer"]):
+            return f"{val:g} miles is equal to {val * 1.60934:.2f} kilometers."
+        if (u1 in ["km", "kilometers", "kilometer"] and u2 in ["miles", "mile", "mi"]):
+            return f"{val:g} kilometers is equal to {val / 1.60934:.2f} miles."
+        if (u1 in ["feet", "ft", "foot"] and u2 in ["meters", "meter", "m"]):
+            return f"{val:g} feet is equal to {val * 0.3048:.2f} meters."
+        if (u1 in ["meters", "meter", "m"] and u2 in ["feet", "ft", "foot"]):
+            return f"{val:g} meters is equal to {val / 0.3048:.2f} feet."
+        if (u1 in ["inches", "inch", "in"] and u2 in ["cm", "centimeters", "centimeter"]):
+            return f"{val:g} inches is equal to {val * 2.54:.2f} centimeters."
+        if (u1 in ["cm", "centimeters", "centimeter"] and u2 in ["inches", "inch", "in"]):
+            return f"{val:g} centimeters is equal to {val / 2.54:.2f} inches."
+            
+        # Temperature
+        if (u1 in ["celsius", "c", "°c"] and u2 in ["fahrenheit", "f", "°f"]):
+            res = (val * 9/5) + 32
+            return f"{val:g}°C is equal to {res:.1f}°F."
+        if (u1 in ["fahrenheit", "f", "°f"] and u2 in ["celsius", "c", "°c"]):
+            res = (val - 32) * 5/9
+            return f"{val:g}°F is equal to {res:.1f}°C."
+        if (u1 in ["celsius", "c"] and u2 in ["kelvin", "k"]):
+            return f"{val:g}°C is equal to {val + 273.15:.2f} Kelvin."
+            
+        # Weight
+        if (u1 in ["lbs", "pounds", "pound"] and u2 in ["kg", "kilograms", "kilogram"]):
+            return f"{val:g} pounds is equal to {val * 0.453592:.2f} kilograms."
+        if (u1 in ["kg", "kilograms", "kilogram"] and u2 in ["lbs", "pounds", "pound"]):
+            return f"{val:g} kilograms is equal to {val / 0.453592:.2f} pounds."
+            
+        # Data
+        if (u1 in ["gb", "gigabytes"] and u2 in ["mb", "megabytes"]):
+            return f"{val:g} GB is equal to {val * 1024:.0f} MB."
+        if (u1 in ["tb", "terabytes"] and u2 in ["gb", "gigabytes"]):
+            return f"{val:g} TB is equal to {val * 1024:.0f} GB."
+    except Exception:
+        pass
+    return None
+
+def solve_scientific_math(clean_cmd):
+    # square root
+    m_sqrt = re.search(r'(?:square root of|sqrt of|sqrt)\s+([0-9\.]+)', clean_cmd)
+    if m_sqrt:
+        val = float(m_sqrt.group(1))
+        res = math.sqrt(val)
+        return f"The square root of {val:g} is {res:g}."
+
+    # power
+    m_pow = re.search(r'([0-9\.]+)\s*(?:to the power of|\^)\s*([0-9\.]+)', clean_cmd)
+    if m_pow:
+        b, exp = float(m_pow.group(1)), float(m_pow.group(2))
+        res = math.pow(b, exp)
+        return f"{b:g} to the power of {exp:g} is {res:g}."
+
+    # factorial
+    m_fact = re.search(r'factorial of\s+([0-9]+)', clean_cmd)
+    if m_fact:
+        n = int(m_fact.group(1))
+        if n <= 100:
+            res = math.factorial(n)
+            return f"The factorial of {n} is {res}."
+
+    # sin / cos / tan
+    m_trig = re.search(r'(?:what is\s+)?(sin|cos|tan)\s+(?:of\s+)?([0-9\.]+)(?:\s*(?:deg|degrees))?', clean_cmd)
+    if m_trig:
+        fn, angle = m_trig.group(1), float(m_trig.group(2))
+        rad = math.radians(angle)
+        if fn == "sin":
+            val = math.sin(rad)
+        elif fn == "cos":
+            val = math.cos(rad)
+        else:
+            val = math.tan(rad)
+        return f"{fn}({angle:g}°) is approximately {val:.4f}."
+
+    return None
+
+def ask_alex_brain(query):
+    global last_client_action
+    clean_q = query.strip()
+    q_lower = clean_q.lower()
+
+    # 1. Check Unit Conversion
+    conv_ans = solve_unit_conversion(q_lower)
+    if conv_ans:
+        last_client_action = {
+            "type": "knowledge_card",
+            "title": "Unit Conversion",
+            "category": "MEASUREMENT & UNITS",
+            "content": conv_ans,
+            "url": None
+        }
+        return conv_ans
+
+    # 2. Check Scientific Math
+    sci_ans = solve_scientific_math(q_lower)
+    if sci_ans:
+        last_client_action = {
+            "type": "knowledge_card",
+            "title": "Mathematical Calculation",
+            "category": "ADVANCED MATHEMATICS",
+            "content": sci_ans,
+            "url": None
+        }
+        return sci_ans
+
+    # 3. Check Direct Built-in World Facts
+    for k, v in WORLD_FACTS.items():
+        if k in q_lower:
+            last_client_action = {
+                "type": "knowledge_card",
+                "title": k.title(),
+                "category": "PHYSICAL SCIENCE & ATLAS",
+                "content": v,
+                "url": None
+            }
+            return v
+
+    # 4. Check Country Capitals
+    for country, cap in COUNTRY_CAPITALS.items():
+        if f"capital of {country}" in q_lower or f"capital city of {country}" in q_lower:
+            ans = f"The capital of {country.title()} is {cap}."
+            last_client_action = {
+                "type": "knowledge_card",
+                "title": f"Capital of {country.title()}",
+                "category": "GEOGRAPHY & WORLD ATLAS",
+                "content": ans,
+                "url": f"https://en.wikipedia.org/wiki/{urllib.parse.quote(cap)}"
+            }
+            return ans
+
+    # 5. Check Dictionary Definitions ("define serendipity", "meaning of ubiquitous")
+    m_def = re.match(r"^(?:define|meaning of|what is the meaning of|what does)\s+([a-zA-Z\-]+)(?:\s+mean)?\??$", q_lower)
+    if m_def:
+        word = m_def.group(1).strip()
+        try:
+            d_url = f"https://api.dictionaryapi.dev/api/v2/entries/en/{urllib.parse.quote(word)}"
+            req = urllib.request.Request(d_url, headers={"User-Agent": "AlexAI/2.0"})
+            with urllib.request.urlopen(req, timeout=3.5) as r:
+                data = json.loads(r.read().decode())
+                if isinstance(data, list) and len(data) > 0:
+                    meanings = data[0].get("meanings", [])
+                    if meanings:
+                        part = meanings[0].get("partOfSpeech", "definition")
+                        defs = meanings[0].get("definitions", [])
+                        if defs:
+                            d1 = defs[0].get("definition", "")
+                            ans = f"{word.capitalize()} ({part}): {d1}"
+                            last_client_action = {
+                                "type": "knowledge_card",
+                                "title": f"Lexicon: {word.capitalize()}",
+                                "category": "DICTIONARY & ETYMOLOGY",
+                                "content": ans,
+                                "url": f"https://en.wiktionary.org/wiki/{urllib.parse.quote(word)}"
+                            }
+                            return ans
+        except Exception:
+            pass
+
+    # 6. Check City Weather ("weather in Tokyo", "temperature in London")
+    m_w = re.search(r"\b(?:weather|temperature)\s+(?:in|for|at)\s+([a-zA-Z\s]+)", q_lower)
+    if m_w:
+        city = m_w.group(1).strip()
+        try:
+            w_url = f"https://wttr.in/{urllib.parse.quote(city)}?format=%C+%t+(feels+like+%f)+humidity+%h"
+            req = urllib.request.Request(w_url, headers={"User-Agent": "curl/7.88.1"})
+            with urllib.request.urlopen(req, timeout=3.5) as r:
+                w_text = r.read().decode("utf-8").strip()
+                if w_text and len(w_text) > 3 and "Unknown location" not in w_text:
+                    ans = f"The weather in {city.title()} is currently {w_text}."
+                    last_client_action = {
+                        "type": "knowledge_card",
+                        "title": f"Weather Telemetry: {city.title()}",
+                        "category": "METEOROLOGY SENSORS",
+                        "content": ans,
+                        "url": None
+                    }
+                    return ans
+        except Exception:
+            pass
+
+    # 7. Wikipedia Search & Summary Synthesis (Universal World Knowledge)
+    clean_search = re.sub(r"^(?:alex|hey alex|please|can you tell me|tell me about|tell me|what is the|what is|what are the|what are|who was the|who was|who is the|who is|explain the|explain|how does|how do|why is|why are)\s+", "", q_lower).strip()
+    clean_search = re.sub(r"\?+$", "", clean_search).strip()
+    search_target = clean_search if len(clean_search) >= 2 else clean_q
+
+    broadcast_event({"type": "thought", "text": f"Synthesizing universal intelligence for '{search_target}'..."})
+
+    try:
+        search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(search_target)}&format=json&srlimit=4"
+        req = urllib.request.Request(search_url, headers={"User-Agent": "AlexAI/2.0 (contact@alexai.local)"})
+        with urllib.request.urlopen(req, timeout=3.5) as r:
+            s_data = json.loads(r.read().decode())
+            results = s_data.get("query", {}).get("search", [])
+            if results:
+                best_title = results[0]["title"]
+                sum_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(best_title)}"
+                sreq = urllib.request.Request(sum_url, headers={"User-Agent": "AlexAI/2.0 (contact@alexai.local)"})
+                with urllib.request.urlopen(sreq, timeout=3.5) as sr:
+                    sum_data = json.loads(sr.read().decode())
+                    extract = sum_data.get("extract", "")
+                    if extract and len(extract) > 20:
+                        clean_ext = re.sub(r"\s*\([^\)]*[\/\\].*?\)", "", extract)
+                        clean_ext = re.sub(r"\[\d+\]", "", clean_ext)
+                        sentences = re.split(r"(?<=[.!?])\s+", clean_ext.strip())
+                        spoken = " ".join(sentences[:2])
+                        last_client_action = {
+                            "type": "knowledge_card",
+                            "title": best_title,
+                            "category": "GLOBAL KNOWLEDGE ENCYCLOPEDIA",
+                            "content": clean_ext,
+                            "url": f"https://en.wikipedia.org/wiki/{urllib.parse.quote(best_title)}"
+                        }
+                        return spoken
     except Exception:
         pass
 
-    # 1. DuckDuckGo Instant Answer
+    # 8. Wikipedia Python Library Fallback
     try:
-        ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(clean_q)}&format=json&no_html=1&skip_disambig=1"
+        wiki_summary = wikipedia.summary(search_target, sentences=2)
+        if wiki_summary and len(wiki_summary.strip()) > 15:
+            last_client_action = {
+                "type": "knowledge_card",
+                "title": search_target.title(),
+                "category": "ENCYCLOPEDIA FALLBACK",
+                "content": wiki_summary,
+                "url": f"https://en.wikipedia.org/wiki/{urllib.parse.quote(search_target)}"
+            }
+            return wiki_summary
+    except Exception:
+        pass
+
+    # 9. DuckDuckGo Instant Answer Fallback
+    try:
+        ddg_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(search_target)}&format=json&no_html=1&skip_disambig=1"
         req = urllib.request.Request(ddg_url, headers={"User-Agent": "AlexNeuralAI/2.0"})
-        with urllib.request.urlopen(req, timeout=4) as r:
+        with urllib.request.urlopen(req, timeout=3.5) as r:
             data = json.loads(r.read().decode())
             ans = data.get("AbstractText") or data.get("Answer")
             if ans and len(ans.strip()) > 15:
                 sentences = re.split(r'(?<=[.!?])\s+', ans.strip())
-                return " ".join(sentences[:2])
-    except Exception:
-        pass
-
-    # 2. Direct Wikipedia Summary via REST API
-    try:
-        wiki_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(clean_q)}"
-        req = urllib.request.Request(wiki_url, headers={"User-Agent": "AlexNeuralAI/2.0 (contact@alexai.local)"})
-        with urllib.request.urlopen(req, timeout=4) as r:
-            data = json.loads(r.read().decode())
-            extract = data.get("extract")
-            if extract and len(extract.strip()) > 15:
-                sentences = re.split(r'(?<=[.!?])\s+', extract.strip())
-                return " ".join(sentences[:2])
-    except Exception:
-        pass
-
-    # 3. Wikipedia Search -> Summary
-    try:
-        search_url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={urllib.parse.quote(clean_q)}&format=json&srlimit=1"
-        req = urllib.request.Request(search_url, headers={"User-Agent": "AlexNeuralAI/2.0 (contact@alexai.local)"})
-        with urllib.request.urlopen(req, timeout=4) as r:
-            d = json.loads(r.read().decode())
-            results = d.get("query", {}).get("search", [])
-            if results:
-                title = results[0]["title"]
-                sum_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(title)}"
-                sreq = urllib.request.Request(sum_url, headers={"User-Agent": "AlexNeuralAI/2.0 (contact@alexai.local)"})
-                with urllib.request.urlopen(sreq, timeout=4) as sr:
-                    sd = json.loads(sr.read().decode())
-                    extract = sd.get("extract")
-                    if extract and len(extract.strip()) > 15:
-                        sentences = re.split(r'(?<=[.!?])\s+', extract.strip())
-                        return " ".join(sentences[:2])
+                spoken = " ".join(sentences[:2])
+                last_client_action = {
+                    "type": "knowledge_card",
+                    "title": data.get("Heading") or search_target.title(),
+                    "category": "INSTANT INTELLIGENCE",
+                    "content": ans,
+                    "url": data.get("AbstractURL")
+                }
+                return spoken
     except Exception:
         pass
 
@@ -1600,6 +1887,13 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Fal
         loc_m = re.search(r'weather\s+(?:in|for|at)\s+([a-zA-Z\s]+)', clean)
         loc = loc_m.group(1).strip() if loc_m else ""
         msg = get_live_weather(loc)
+        last_client_action = {
+            "type": "knowledge_card",
+            "title": f"Weather Telemetry{f': {loc.title()}' if loc else ''}",
+            "category": "METEOROLOGY SENSORS",
+            "content": msg,
+            "url": None
+        }
         speak_async(msg)
         return msg
 
@@ -2110,7 +2404,7 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Fal
         "how are you": "All processors running cool at nominal temperature. Ready for your instructions."
     }
     for k, resp in conversational_map.items():
-        if k in clean:
+        if re.search(r'\b' + re.escape(k) + r'\b', clean):
             speak_async(resp)
             return resp
 
@@ -2152,24 +2446,15 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Fal
             return msg
 
     # ---------------------------------------------------------
-    # 17. Autonomous Alex Brain (Direct Answers - NO CHROME)
+    # 17. OmniBrain Universal Intelligence (Direct Answers to Anything)
     # ---------------------------------------------------------
-    if any(clean.startswith(p) for p in ["who is ", "who was ", "what is ", "what are ", "what was ", "tell me about ", "explain ", "define ", "capital of "]):
-        brain_res = ask_alex_brain(clean)
-        if brain_res:
-            speak_async(brain_res)
-            return brain_res
+    brain_res = ask_alex_brain(clean)
+    if brain_res:
+        speak_async(brain_res)
+        return brain_res
 
-    # ---------------------------------------------------------
-    # 18. Autonomous Fallback (Check Brain, Never Launch Chrome)
-    # ---------------------------------------------------------
-    general_brain = ask_alex_brain(clean)
-    if general_brain:
-        speak_async(general_brain)
-        return general_brain
-
-    msg = f"I processed '{clean}', but could not find an offline answer. To search Google on the web, say 'search google for {clean}'."
-    speak_async(f"No answer found for {clean}")
+    msg = f"I processed '{clean}'. Ask me any question in the world about science, history, geography, space, technology, definitions, conversions, or company profiles."
+    speak_async(msg)
     return msg
 
 # ---------------------------------------------------------

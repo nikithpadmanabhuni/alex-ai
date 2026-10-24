@@ -332,16 +332,19 @@
         </div>
 
         <!-- Streamlined Cyber Terminal Input Bar -->
-        <form id="commandForm" class="command-box">
-          <button type="button" class="inline-mic-btn" id="inlineMicBtn" title="Speak Voice Command">🎙️</button>
-          <span class="terminal-hacker-prompt">root@alex:~#</span>
+        <form id="commandForm" class="command-box" role="search" aria-label="Alex Command Terminal">
+          <label for="commandInput" class="sr-only">Ask Alex anything or enter terminal command</label>
+          <button type="button" class="inline-mic-btn" id="inlineMicBtn" title="Speak Voice Command" aria-label="Activate voice microphone">🎙️</button>
+          <span class="terminal-hacker-prompt" aria-hidden="true">root@alex:~#</span>
           <input 
             type="text" 
             id="commandInput" 
-            placeholder="Run terminal command or ask ('details of Nvidia', 'who is CEO of Tesla')..." 
+            name="commandInput"
+            placeholder="Ask anything in the world ('what is quantum computing', 'capital of France', 'details of Apple')..." 
             autocomplete="off"
+            aria-label="Ask Alex anything or enter terminal command"
           />
-          <button type="submit" class="send-btn">
+          <button type="submit" class="send-btn" aria-label="Execute command or question">
             <span>[ EXECUTE ]</span>
             <span class="btn-glow"></span>
           </button>
@@ -349,11 +352,12 @@
 
         <!-- Quick Query Suggestion Pills -->
         <div class="center-quick-pills">
-          <button type="button" class="pill-chip" data-cmd="Alex">👋 "Alex"</button>
-          <button type="button" class="pill-chip" data-cmd="show details of companies and all">🏢 Company Details</button>
-          <button type="button" class="pill-chip" data-cmd="details of Apple">🍎 Apple Profile</button>
-          <button type="button" class="pill-chip" data-cmd="who is the CEO of Tesla">⚡ Tesla CEO</button>
-          <button type="button" class="pill-chip" data-cmd="show stocks">📈 Live Stocks</button>
+          <button type="button" class="pill-chip" data-cmd="what is quantum computing">⚛️ Quantum Computing</button>
+          <button type="button" class="pill-chip" data-cmd="who discovered penicillin">🔬 Penicillin</button>
+          <button type="button" class="pill-chip" data-cmd="details of Apple">🏢 Apple Profile</button>
+          <button type="button" class="pill-chip" data-cmd="what is the speed of light">⚡ Speed of Light</button>
+          <button type="button" class="pill-chip" data-cmd="define serendipity">📖 Define Serendipity</button>
+          <button type="button" class="pill-chip" data-cmd="weather in Tokyo">🌤️ Tokyo Weather</button>
         </div>
       </main>
 
