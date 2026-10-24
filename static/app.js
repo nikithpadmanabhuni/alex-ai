@@ -985,25 +985,45 @@ function unlockAudio() {
 window.addEventListener("touchstart", unlockAudio, { passive: true });
 window.addEventListener("click", unlockAudio);
 
+let lastSpokenText = "";
+let lastSpokenTimestamp = 0;
+
 function playAlexVoice(text, audioUrl) {
   unlockAudio();
   if (!text && !audioUrl) return;
 
   const clean = (text || "").replace(/[\*\#\_`\[\]]/g, "").trim();
-  const src = audioUrl || `/api/tts_audio?text=${encodeURIComponent(clean)}`;
+  const now = Date.now();
 
+  // Deduplication guard: Suppress exact same speech if triggered within 3.5 seconds
+  if (clean && clean === lastSpokenText && (now - lastSpokenTimestamp < 3500)) {
+    console.log("Suppressed duplicate voice output:", clean);
+    return;
+  }
+  lastSpokenText = clean;
+  lastSpokenTimestamp = now;
+
+  // Immediately cancel any lingering prior speech to prevent overlapping voices
+  if ("speechSynthesis" in window) {
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  if (alexAudioPlayer) {
+    try {
+      alexAudioPlayer.pause();
+      alexAudioPlayer.currentTime = 0;
+    } catch (e) {}
+  }
+
+  const src = audioUrl || `/api/tts_audio?text=${encodeURIComponent(clean)}`;
   setAppState("speaking", "ALEX RESPONDING...");
 
   if (!alexAudioPlayer) alexAudioPlayer = new Audio();
   alexAudioPlayer.src = src;
 
-  let played = false;
   const p = alexAudioPlayer.play();
   if (p !== undefined) {
-    p.then(() => {
-      played = true;
-    }).catch((err) => {
-      console.warn("HTML5 audio playback error, trying SpeechSynthesis fallback:", err);
+    p.then(() => {}).catch((err) => {
+      console.warn("HTML5 audio playback notice, trying SpeechSynthesis fallback:", err);
       speakInBrowser(clean);
     });
   }
@@ -1014,10 +1034,12 @@ function playAlexVoice(text, audioUrl) {
 }
 
 function speakInBrowser(text) {
-  if (!("speechSynthesis" in window)) return;
-  window.speechSynthesis.cancel();
+  if (!("speechSynthesis" in window) || !text) return;
+  const clean = text.replace(/[\*\#\_`\[\]]/g, "").trim();
+  if (!clean) return;
 
-  const clean = text.replace(/[\*\#\_`\[\]]/g, "");
+  try { window.speechSynthesis.cancel(); } catch (e) {}
+
   const utterance = new SpeechSynthesisUtterance(clean);
   utterance.rate = 1.05;
   utterance.pitch = 1.0;
@@ -1180,15 +1202,31 @@ function stopVoiceSession() {
   }
   if (inlineMicBtn) inlineMicBtn.classList.remove("listening");
 
-  if (sessionFinalTranscript && sessionFinalTranscript.trim()) {
-    const cmd = sessionFinalTranscript.trim();
-    sessionFinalTranscript = "";
-    sendCommand(cmd);
-  } else if (activeRecognitionInstance) {
+  if (activeRecognitionInstance) {
     try { activeRecognitionInstance.stop(); } catch (e) {}
     activeRecognitionInstance = null;
   }
 
+  // If Web Speech API already transcribed the voice command, execute it directly
+  // and CANCEL mediaRecorder to avoid a duplicate /api/voice_upload request!
+  if (sessionFinalTranscript && sessionFinalTranscript.trim()) {
+    const cmd = sessionFinalTranscript.trim();
+    sessionFinalTranscript = "";
+    recordedChunks = [];
+    if (mediaRecorder && mediaRecorder.state === "recording") {
+      mediaRecorder.ondataavailable = null;
+      mediaRecorder.onstop = null;
+      try { mediaRecorder.stop(); } catch (e) {}
+    }
+    if (voiceStream) {
+      voiceStream.getTracks().forEach((t) => t.stop());
+      voiceStream = null;
+    }
+    sendCommand(cmd);
+    return;
+  }
+
+  // Fallback: If Web Speech did not yield a transcript, let mediaRecorder upload
   if (mediaRecorder && mediaRecorder.state === "recording") {
     mediaRecorder.stop();
   }
@@ -2437,7 +2475,7 @@ commsForm.addEventListener("submit", async (e) => {
     });
     const data = await res.json();
     addLogEntry("alex", data.response);
-    speakInBrowser(data.response);
+    playAlexVoice(data.response);
   } catch (err) {
     addLogEntry("system", `Comms error: ${err.message}`);
   }

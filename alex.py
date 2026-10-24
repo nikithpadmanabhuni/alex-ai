@@ -755,7 +755,7 @@ def handle_voice_upload():
         last_phone_command_time = time.time()
 
     execute_on_mac = (target_device == "laptop")
-    speak_on_server = (target_device == "laptop")
+    speak_on_server = False  # Client web browser plays audio; prevent duplicate server speech
 
     response_text = execute_universal_task(
         clean_transcript,
@@ -793,7 +793,7 @@ def handle_command():
         last_phone_command_time = time.time()
 
     execute_on_mac = (target_device == "laptop")
-    speak_on_server = (target_device == "laptop")
+    speak_on_server = False  # Client web browser plays audio; prevent duplicate server speech
 
     response_text = execute_universal_task(
         cmd,
@@ -886,7 +886,7 @@ def handle_request_permission():
 # ---------------------------------------------------------
 # Transmit Text / Message Engine (WhatsApp, iMessage, Mail)
 # ---------------------------------------------------------
-def transmit_text_message(platform, recipient, message, execute_on_mac=True):
+def transmit_text_message(platform, recipient, message, execute_on_mac=True, speak_on_server=False):
     global last_client_action
     clean_num = re.sub(r'[^\d\+]', '', recipient)
     encoded_msg = urllib.parse.quote(message)
@@ -900,10 +900,12 @@ def transmit_text_message(platform, recipient, message, execute_on_mac=True):
         if execute_on_mac:
             webbrowser.open(f"https://web.whatsapp.com/send?phone={clean_num}&text={encoded_msg}" if clean_num else url)
             msg = f"Opening WhatsApp chat with {recipient} to transmit: '{message}'"
-            speak_async(f"Opening WhatsApp chat for {recipient}")
+            if speak_on_server:
+                speak_async(f"Opening WhatsApp chat for {recipient}")
         else:
             msg = f"Opening WhatsApp on your phone to send: '{message}'"
-            speak_async("Opening WhatsApp on phone")
+            if speak_on_server:
+                speak_async("Opening WhatsApp on phone")
         return msg
 
     elif platform == "imessage" or "message" in platform or "sms" in platform:
@@ -920,17 +922,20 @@ def transmit_text_message(platform, recipient, message, execute_on_mac=True):
                 proc = subprocess.run(["osascript", "-e", scpt], capture_output=True, text=True, timeout=3)
                 if proc.returncode == 0:
                     msg = f"iMessage transmitted to {recipient}: '{message}'"
-                    speak_async(f"iMessage sent to {recipient}")
+                    if speak_on_server:
+                        speak_async(f"iMessage sent to {recipient}")
                     return msg
             except Exception:
                 pass
 
             subprocess.run(["open", sms_url])
             msg = f"Opened Messages to text {recipient}: '{message}'"
-            speak_async(f"Opened Messages for {recipient}")
+            if speak_on_server:
+                speak_async(f"Opened Messages for {recipient}")
         else:
             msg = f"Opening Messages on your phone to text {recipient}: '{message}'"
-            speak_async("Opening Messages on phone")
+            if speak_on_server:
+                speak_async("Opening Messages on phone")
         return msg
 
     elif platform == "mail" or "email" in platform:
@@ -939,10 +944,12 @@ def transmit_text_message(platform, recipient, message, execute_on_mac=True):
         if execute_on_mac:
             subprocess.run(["open", mail_url])
             msg = f"Drafted email to {recipient} with message: '{message}'"
-            speak_async(f"Drafted email to {recipient}")
+            if speak_on_server:
+                speak_async(f"Drafted email to {recipient}")
         else:
             msg = f"Drafting email on your phone for {recipient}."
-            speak_async("Drafting email on phone")
+            if speak_on_server:
+                speak_async("Drafting email on phone")
         return msg
 
     return f"Unknown messaging platform: {platform}"
@@ -986,7 +993,7 @@ def perform_universal_typing(text, target_app=None):
 # ---------------------------------------------------------
 # Universal Task Execution Engine (Named Alex)
 # ---------------------------------------------------------
-def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=True, target_device="laptop"):
+def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=False, target_device="laptop"):
     global last_command_time, last_command_text, last_command_response, last_client_action
     last_client_action = None
     raw_stripped = raw_command.strip()
@@ -996,7 +1003,6 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Tru
     if any(k in cmd_lower for k in ["on laptop", "on mac", "on macbook", "on pc", "on computer"]):
         target_device = "laptop"
         execute_on_mac = True
-        speak_on_server = True
         cmd_lower = re.sub(r'\b(?:on\s+(?:the\s+)?(?:laptop|mac(?:book)?|pc|computer))\b', '', cmd_lower, flags=re.I).strip()
     elif any(k in cmd_lower for k in ["on phone", "in phone", "on my phone", "in my phone"]):
         target_device = "phone"
