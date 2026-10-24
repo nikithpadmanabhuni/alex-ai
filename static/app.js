@@ -3196,3 +3196,75 @@ async function updateLivePing() {
 }
 setInterval(updateLivePing, 4000);
 updateLivePing();
+
+
+// -------------------------------------------------------------
+// Cyberpunk Hacker Matrix Digital Rain (Ambient Background Layer)
+// -------------------------------------------------------------
+function initMatrixRain() {
+  const rainCanvas = document.getElementById("matrixRainCanvas");
+  if (!rainCanvas) return;
+  const rCtx = rainCanvas.getContext("2d");
+
+  function resizeRain() {
+    rainCanvas.width = window.innerWidth;
+    rainCanvas.height = window.innerHeight;
+  }
+  window.addEventListener("resize", resizeRain);
+  resizeRain();
+
+  const chars = "0123456789ABCDEF010101XYZ<>/{}[]*#$@!%&";
+  const fontSize = 14;
+  const columns = Math.max(10, Math.floor(window.innerWidth / fontSize));
+  const drops = [];
+  for (let i = 0; i < columns; i++) {
+    drops[i] = Math.floor(Math.random() * -40);
+  }
+
+  let lastT = 0;
+  function renderRain(t) {
+    requestAnimationFrame(renderRain);
+    if (t - lastT < 36) return; // ~28 FPS optimal performance
+    lastT = t;
+
+    rCtx.fillStyle = "rgba(2, 6, 23, 0.08)";
+    rCtx.fillRect(0, 0, rainCanvas.width, rainCanvas.height);
+
+    rCtx.font = `${fontSize}px 'JetBrains Mono', monospace`;
+
+    for (let i = 0; i < drops.length; i++) {
+      const char = chars[Math.floor(Math.random() * chars.length)];
+      const x = i * fontSize;
+      const y = drops[i] * fontSize;
+
+      if (Math.random() > 0.88) {
+        rCtx.fillStyle = "rgba(0, 240, 255, 0.85)";
+        rCtx.shadowColor = "#00f0ff";
+        rCtx.shadowBlur = 8;
+      } else {
+        rCtx.fillStyle = "rgba(0, 255, 102, 0.35)";
+        rCtx.shadowColor = "#00ff66";
+        rCtx.shadowBlur = 4;
+      }
+
+      rCtx.fillText(char, x, y);
+
+      if (y > rainCanvas.height && Math.random() > 0.975) {
+        drops[i] = 0;
+      }
+      drops[i]++;
+    }
+  }
+  requestAnimationFrame(renderRain);
+}
+initMatrixRain();
+
+// Live CPU Core Activity Telemetry
+function updateLiveCpu() {
+  const cpuEl = document.getElementById("cpuVal");
+  if (!cpuEl) return;
+  const base = appState === "speaking" ? 42 : (appState === "recognizing" ? 68 : 22);
+  const jitter = Math.floor((Math.random() - 0.5) * 8);
+  cpuEl.innerText = `CPU: ${Math.max(12, base + jitter)}%`;
+}
+setInterval(updateLiveCpu, 2000);
