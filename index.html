@@ -63,6 +63,16 @@
           <span>LINK</span>
         </button>
 
+        <!-- AI Models Hub & Audio SFX Toggles -->
+        <button class="nav-btn ai-models-btn" id="openAiConfigBtn" title="AI Engines & API Keys (Gemini, Groq, OpenAI, Ollama)">
+          <span class="btn-icon">🔮</span>
+          <span id="aiModelBadgeText">AI ENGINE</span>
+        </button>
+        <button class="nav-btn sfx-btn" id="sfxToggleBtn" title="Toggle Futuristic Cyber Audio SFX">
+          <span class="btn-icon" id="sfxIcon">🔊</span>
+          <span id="sfxLabel">SFX: ON</span>
+        </button>
+
         <!-- Hidden Compatibility Targets for Legacy Scripts -->
         <button class="nav-btn" id="openChartsBtn" style="display:none;"></button>
         <button class="nav-btn" id="openStocksBtn" style="display:none;"></button>
@@ -225,6 +235,33 @@
                 </div>
                 <span class="opt-arrow">❯</span>
               </button>
+
+              <button type="button" class="hud-opt-btn ai-highlight-opt" id="optAiModelsBtn">
+                <span class="opt-icon">🔮</span>
+                <div class="opt-info">
+                  <span class="opt-title">AI Engine & Models</span>
+                  <span class="opt-desc">Gemini, Groq, OpenAI, Local</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn code-highlight-opt" id="optCodeStudioBtn">
+                <span class="opt-icon">💻</span>
+                <div class="opt-info">
+                  <span class="opt-title">AI Code Studio</span>
+                  <span class="opt-desc">Live Python runner & sandbox</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
+
+              <button type="button" class="hud-opt-btn research-highlight-opt" id="optDeepResearchBtn">
+                <span class="opt-icon">🔬</span>
+                <div class="opt-info">
+                  <span class="opt-title">Deep Web Research</span>
+                  <span class="opt-desc">Multi-source intelligence</span>
+                </div>
+                <span class="opt-arrow">❯</span>
+              </button>
             </div>
           </div>
 
@@ -357,12 +394,14 @@
 
         <!-- Quick Query Suggestion Pills -->
         <div class="center-quick-pills">
+          <button type="button" class="pill-chip" data-cmd="write a python function for fibonacci">💻 Fibonacci Code</button>
+          <button type="button" class="pill-chip" data-cmd="compare react vs vue">⚖️ React vs Vue</button>
           <button type="button" class="pill-chip" data-cmd="what is quantum computing">⚛️ Quantum Computing</button>
-          <button type="button" class="pill-chip" data-cmd="who discovered penicillin">🔬 Penicillin</button>
           <button type="button" class="pill-chip" data-cmd="details of Apple">🏢 Apple Profile</button>
-          <button type="button" class="pill-chip" data-cmd="what is the speed of light">⚡ Speed of Light</button>
-          <button type="button" class="pill-chip" data-cmd="define serendipity">📖 Define Serendipity</button>
+          <button type="button" class="pill-chip" data-cmd="who discovered penicillin">🔬 Penicillin</button>
           <button type="button" class="pill-chip" data-cmd="weather in Tokyo">🌤️ Tokyo Weather</button>
+          <button type="button" class="pill-chip" data-cmd="details of Nvidia">⚡ Nvidia Profile</button>
+          <button type="button" class="pill-chip" data-cmd="what is the speed of light">🌌 Speed of Light</button>
         </div>
       </main>
 
@@ -548,8 +587,6 @@
     </div>
   </div>
 
-  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
-  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
 
   <!-- ========================================================= -->
   <!-- MODAL 1: HOLOGRAPHIC CHARTS & ANALYTICS DASHBOARD -->
@@ -581,8 +618,6 @@
     </div>
   </div>
 
-  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
-  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
 
   <!-- ========================================================= -->
   <!-- MODAL 2: NEURAL COMMS & TEXTING HUB -->
@@ -651,8 +686,6 @@
     </div>
   </div>
 
-  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
-  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
 
   <!-- ========================================================= -->
   <!-- MODAL 3: PUBLIC REMOTE & SMARTPHONE ACCESS (QR + HTTPS)  -->
@@ -719,8 +752,6 @@
     </div>
   </div>
 
-  <!-- Hidden Phone Camera Input for Native Mobile Capture -->
-  <input type="file" id="phoneCameraInput" accept="image/*" capture="environment" style="display:none;" />
 
   <!-- ========================================================= -->
   <!-- MODAL 4: SYSTEM ACCESS & NEURAL PERMISSIONS INITIALIZER   -->
@@ -950,6 +981,178 @@
             <div class="modal-news-list" id="modalCompNewsList">
               <!-- Populated via JS -->
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 5: AI NEURAL ENGINE & MULTI-MODEL CONFIG            -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="aiConfigModal">
+    <div class="modal-card ai-config-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge ai-badge">NEURAL CORE // LLM ENGINE</span>
+          <h2>AI ENGINE & MODEL ARCHITECTURE</h2>
+        </div>
+        <button class="close-btn" id="closeAiConfigBtn">&times;</button>
+      </div>
+
+      <div class="ai-config-body">
+        <p class="ai-config-intro">
+          Alex is equipped with the <strong>OmniBrain 3.0 Ultra Universal Synthesizer</strong>, and can seamlessly tap into frontier LLM inference (Google Gemini, Groq, OpenAI, or local offline Ollama) for boundless answering power.
+        </p>
+
+        <form id="aiConfigForm" class="ai-config-form">
+          <div class="config-field-group">
+            <label for="aiProviderSelect">ACTIVE AI ENGINE PROVIDER</label>
+            <select id="aiProviderSelect" class="cyber-select">
+              <option value="auto">⚡ AUTO HYBRID (Gemini &gt; Groq &gt; Ollama &gt; OmniBrain)</option>
+              <option value="gemini">🔮 GOOGLE GEMINI (Gemini 2.5 Flash / Pro)</option>
+              <option value="groq">🚀 GROQ CLOUD (Llama 3.3 70B — Ultra Fast)</option>
+              <option value="openai">🧠 OPENAI (GPT-4o / GPT-4o-mini)</option>
+              <option value="ollama">💻 LOCAL OLLAMA / OPENJARVIS (100% Offline)</option>
+              <option value="omnibrain">🛡️ OMNIBRAIN NATIVE (Autonomous Zero-Key Engine)</option>
+            </select>
+          </div>
+
+          <div class="config-keys-section">
+            <div class="config-key-row">
+              <div class="key-label-row">
+                <label for="geminiApiKeyInput">GOOGLE GEMINI API KEY</label>
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" class="key-get-link">GET FREE KEY ↗</a>
+              </div>
+              <div class="key-input-wrapper">
+                <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy... (Paste Gemini Key for Unlimited Intelligence)" autocomplete="off" />
+                <button type="button" class="key-eye-btn" data-target="geminiApiKeyInput">👁️</button>
+              </div>
+            </div>
+
+            <div class="config-key-row">
+              <div class="key-label-row">
+                <label for="groqApiKeyInput">GROQ API KEY (LLAMA 3.3 70B)</label>
+                <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer" class="key-get-link">GET FREE KEY ↗</a>
+              </div>
+              <div class="key-input-wrapper">
+                <input type="password" id="groqApiKeyInput" placeholder="gsk_... (Paste Groq Key for 500+ tok/s Speed)" autocomplete="off" />
+                <button type="button" class="key-eye-btn" data-target="groqApiKeyInput">👁️</button>
+              </div>
+            </div>
+
+            <div class="config-key-row">
+              <div class="key-label-row">
+                <label for="openaiApiKeyInput">OPENAI API KEY (GPT-4O)</label>
+                <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" class="key-get-link">GET KEY ↗</a>
+              </div>
+              <div class="key-input-wrapper">
+                <input type="password" id="openaiApiKeyInput" placeholder="sk-proj-... (Paste OpenAI Key)" autocomplete="off" />
+                <button type="button" class="key-eye-btn" data-target="openaiApiKeyInput">👁️</button>
+              </div>
+            </div>
+
+            <div class="config-key-row">
+              <label for="ollamaUrlInput">OLLAMA HOST URL</label>
+              <input type="text" id="ollamaUrlInput" placeholder="http://127.0.0.1:11434" value="http://127.0.0.1:11434" />
+            </div>
+          </div>
+
+          <div class="ai-config-actions">
+            <button type="submit" class="cyber-submit-btn" id="saveAiConfigBtn">
+              <span>[ SAVE & ARM AI ENGINES ]</span>
+            </button>
+            <span class="save-status-msg" id="aiConfigStatusMsg"></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 6: INTERACTIVE AI PYTHON CODE STUDIO & SANDBOX      -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="codeStudioModal">
+    <div class="modal-card code-studio-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge code-badge">EXECUTION SANDBOX // PYTHON 3</span>
+          <h2>AI CODE STUDIO & LIVE RUNNER</h2>
+        </div>
+        <button class="close-btn" id="closeCodeStudioBtn">&times;</button>
+      </div>
+
+      <div class="code-studio-body">
+        <div class="code-studio-toolbar">
+          <div class="preset-group">
+            <label for="codeSnippetSelect">ALGORITHM PRESETS:</label>
+            <select id="codeSnippetSelect" class="cyber-select-sm">
+              <option value="fibonacci">Fibonacci Sequence (O(1) space)</option>
+              <option value="binary_search">Binary Search (O(log n))</option>
+              <option value="quicksort">Quicksort Algorithm</option>
+              <option value="two_sum">Two Sum (Hash Map O(n))</option>
+              <option value="primes">Sieve of Eratosthenes</option>
+              <option value="matrix_math">Matrix Multiplication</option>
+              <option value="system_info">System Diagnostics & Hardware</option>
+            </select>
+          </div>
+          <div class="toolbar-actions">
+            <button type="button" class="tool-btn" id="clearCodeBtn">CLEAR</button>
+            <button type="button" class="tool-btn copy" id="copyCodeBtn">COPY</button>
+          </div>
+        </div>
+
+        <div class="code-editor-wrapper">
+          <textarea id="pythonCodeEditor" spellcheck="false" placeholder="# Write or paste Python code here...&#10;print('Hello from Alex Code Studio!')"></textarea>
+        </div>
+
+        <div class="code-exec-bar">
+          <button type="button" class="exec-code-btn" id="runPythonBtn">
+            <span>▶ RUN IN SANDBOX</span>
+            <span class="btn-glow"></span>
+          </button>
+          <div class="exec-telemetry" id="codeExecTelemetry">
+            <span class="exec-dot ready"></span>
+            <span id="codeStatusText">SANDBOX IDLE // READY</span>
+          </div>
+        </div>
+
+        <div class="terminal-output-container">
+          <div class="terminal-out-header">
+            <span>CONSOLE STDOUT & DIAGNOSTICS</span>
+            <span id="execDurationTag">0.0 ms</span>
+          </div>
+          <pre id="codeOutputConsole" class="terminal-console-pre">Output will appear here after execution...</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- MODAL 7: DEEP WEB RESEARCH & SYNTHESIS HUB                -->
+  <!-- ========================================================= -->
+  <div class="hud-modal" id="researchModal">
+    <div class="modal-card research-card">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <span class="modal-badge research-badge">RESEARCH // MULTI-SOURCE SYNTHESIS</span>
+          <h2>DEEP RESEARCH & INTELLIGENCE DOSSIER</h2>
+        </div>
+        <button class="close-btn" id="closeResearchBtn">&times;</button>
+      </div>
+
+      <div class="research-body">
+        <form id="researchForm" class="research-input-row">
+          <input type="text" id="researchTopicInput" placeholder="Enter research topic (e.g. 'Humanoid Robotics Moat', 'CRISPR Gene Editing', 'NVIDIA Blackwell Superchips')..." autocomplete="off" />
+          <button type="submit" class="research-submit-btn" id="startResearchBtn">
+            <span>🔬 INITIATE RESEARCH</span>
+          </button>
+        </form>
+
+        <div class="research-results-container" id="researchResultsContainer">
+          <div class="research-placeholder">
+            <div class="res-icon">🌐</div>
+            <p>Enter any topic above to generate a comprehensive multi-source intelligence briefing with real-time analysis, competitive moat, and authoritative citations.</p>
           </div>
         </div>
       </div>

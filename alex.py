@@ -35,6 +35,8 @@ try:
 except Exception:
     pyperclip = None
 
+import alex_ai_engine
+
 # Ensure Homebrew and standard system paths are accessible
 os.environ["PATH"] = f"/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:{os.environ.get('PATH', '')}"
 
@@ -526,6 +528,17 @@ def ask_alex_brain(query):
     clean_q = query.strip()
     q_lower = clean_q.lower()
 
+    # 0. Check Code & Algorithmic Requests directly via OmniBrain Code Studio
+    if any(k in q_lower for k in ["code", "function", "script", "program", "algorithm", "quicksort", "fibonacci", "binary search", "linked list", "bubble sort", "two sum"]):
+        try:
+            ai_res = alex_ai_engine.answer_any_question(clean_q)
+            if ai_res and ai_res.get("response") and ai_res.get("provider") != "OmniBrain Core":
+                if ai_res.get("action"):
+                    last_client_action = ai_res["action"]
+                return ai_res["response"]
+        except Exception as e:
+            print(f"[OmniBrain Algorithmic Error] {e}")
+
     # 1. Check Unit Conversion
     conv_ans = solve_unit_conversion(q_lower)
     if conv_ans:
@@ -697,6 +710,16 @@ def ask_alex_brain(query):
     except Exception:
         pass
 
+    # 10. OmniBrain 3.0 Ultra Universal AI Engine (Can answer ANYTHING in the world)
+    try:
+        ai_res = alex_ai_engine.answer_any_question(clean_q)
+        if ai_res and ai_res.get("response"):
+            if ai_res.get("action"):
+                last_client_action = ai_res["action"]
+            return ai_res["response"]
+    except Exception as e:
+        print(f"[OmniBrain AI Dispatch Error] {e}")
+
     return None
 
 
@@ -755,8 +778,10 @@ DEFAULT_MARKET_DATA = {
     "GOOGL": {"name": "Alphabet Inc", "price": 182.40, "change": 0.85, "high": 183.90, "low": 181.10, "volume": "22.5M", "currency": "$", "history": [180.5, 181.2, 181.9, 182.1, 182.4]},
     "MSFT": {"name": "Microsoft Corp", "price": 448.50, "change": 0.62, "high": 451.20, "low": 446.80, "volume": "19.3M", "currency": "$", "history": [445.0, 446.2, 447.8, 448.1, 448.5]},
     "AMZN": {"name": "Amazon.com Inc", "price": 194.20, "change": 1.30, "high": 196.00, "low": 192.50, "volume": "31.7M", "currency": "$", "history": [191.0, 192.4, 193.1, 193.8, 194.2]},
-    "BTC": {"name": "Bitcoin USD", "price": 80083.92, "change": -1.23, "high": 81500.00, "low": 79200.00, "volume": "$28.4B", "currency": "$", "history": [79500.0, 79900.0, 80400.0, 80200.0, 80083.92]},
+    "BTC": {"name": "Bitcoin USD", "price": 80674.00, "change": 1.56, "high": 81500.00, "low": 79200.00, "volume": "$28.4B", "currency": "$", "history": [79500.0, 79900.0, 80400.0, 80200.0, 80674.0]},
     "ETH": {"name": "Ethereum USD", "price": 2740.10, "change": 1.15, "high": 2780.00, "low": 2710.00, "volume": "$14.2B", "currency": "$", "history": [2690.0, 2715.0, 2730.0, 2738.0, 2740.1]},
+    "SOL": {"name": "Solana USD", "price": 182.50, "change": 3.82, "high": 186.20, "low": 175.40, "volume": "$4.1B", "currency": "$", "history": [176.0, 178.5, 180.2, 181.9, 182.5]},
+    "DOGE": {"name": "Dogecoin USD", "price": 0.175, "change": 4.12, "high": 0.182, "low": 0.168, "volume": "$1.8B", "currency": "$", "history": [0.169, 0.171, 0.173, 0.174, 0.175]},
     "SPY": {"name": "S&P 500 ETF", "price": 586.40, "change": 0.45, "high": 588.10, "low": 584.20, "volume": "42.0M", "currency": "$", "history": [583.0, 584.5, 585.8, 586.1, 586.4]}
 }
 
@@ -994,6 +1019,57 @@ COMPANY_DETAILS = {
             {"headline": "Broad Market Breadth Improves as Equal-Weight Index Rallies to New Highs", "source": "MarketWatch", "time": "5h ago"},
             {"headline": "Global Capital Flows Favor US Large-Cap Equities Amid Resilient GDP Growth", "source": "Barron's", "time": "8h ago"}
         ]
+    },
+    "SOL": {
+        "symbol": "SOL",
+        "name": "Solana USD",
+        "ceo": "Anatoly Yakovenko (Co-founder)",
+        "founded": "2020",
+        "headquarters": "San Francisco, CA (Solana Foundation)",
+        "employees": "Global Open Source Ecosystem",
+        "sector": "Cryptocurrency",
+        "industry": "High-Throughput Layer-1 Blockchain",
+        "market_cap": "$86.5 Billion",
+        "pe_ratio": "N/A (Protocol)",
+        "eps": "N/A",
+        "week52_high": "$210.00",
+        "week52_low": "$110.00",
+        "dividend_yield": "~6.8% (Staking Yield)",
+        "beta": "2.45",
+        "analyst_rating": "Strong Buy (Web3 Scale)",
+        "analyst_target": "$250.00 (+36%)",
+        "description": "Solana is a high-speed monolithic layer-1 blockchain designed for mass-market financial and decentralized consumer applications, processing thousands of transactions per second with sub-second latency.",
+        "key_products": ["Proof of History (PoH)", "Solana Virtual Machine (SVM)", "Firedancer Validator Client", "DeFi & NFT Ecosystem"],
+        "news": [
+            {"headline": "Solana Daily Active Addresses Reach New Record High of 4.2 Million", "source": "Blockworks", "time": "1h ago"},
+            {"headline": "Firedancer Independent Validator Achieves 1M TPS in Testnet Benchmarks", "source": "Decrypt", "time": "4h ago"},
+            {"headline": "Visa and Major Fintech Partners Expand Stablecoin Settlement on Solana", "source": "CoinDesk", "time": "7h ago"}
+        ]
+    },
+    "DOGE": {
+        "symbol": "DOGE",
+        "name": "Dogecoin USD",
+        "ceo": "Billy Markus & Jackson Palmer (Creators)",
+        "founded": "2013",
+        "headquarters": "Decentralized Community",
+        "employees": "Open Source Community",
+        "sector": "Cryptocurrency",
+        "industry": "Peer-to-Peer Digital Currency",
+        "market_cap": "$25.4 Billion",
+        "pe_ratio": "N/A",
+        "eps": "N/A",
+        "week52_high": "$0.228",
+        "week52_low": "$0.072",
+        "dividend_yield": "N/A",
+        "beta": "2.80",
+        "analyst_rating": "Speculative Momentum",
+        "analyst_target": "$0.300",
+        "description": "Dogecoin is an open-source peer-to-peer cryptocurrency utilizing Scrypt proof-of-work algorithm, widely recognized for microtransactions, social tipping, and strong global community engagement.",
+        "key_products": ["Dogecoin Blockchain Core", "Scrypt PoW Algorithm", "Decentralized Payments", "Social Micro-Tipping"],
+        "news": [
+            {"headline": "Dogecoin Foundation Advances Core 1.14.7 Performance & Security Update", "source": "CoinTelegraph", "time": "2h ago"},
+            {"headline": "On-Chain Transaction Volume Crosses 2 Million Daily Transfers", "source": "Decrypt", "time": "5h ago"}
+        ]
     }
 }
 
@@ -1001,12 +1077,59 @@ cached_stock_data = dict(DEFAULT_MARKET_DATA)
 
 def fetch_live_stock_quote(symbol):
     sym = (symbol or "NVDA").upper().strip()
-    api_sym = "BTC-USD" if sym in ["BTC", "BITCOIN"] else ("ETH-USD" if sym in ["ETH", "ETHEREUM"] else sym)
     details = COMPANY_DETAILS.get(sym, COMPANY_DETAILS.get("NVDA"))
 
+    # 1. Binance Live Real-Time Feed for Cryptocurrencies
+    if sym in ["BTC", "BITCOIN", "ETH", "ETHEREUM", "SOL", "SOLANA", "DOGE", "DOGECOIN"]:
+        pair_map = {
+            "BTC": "BTCUSDT", "BITCOIN": "BTCUSDT",
+            "ETH": "ETHUSDT", "ETHEREUM": "ETHUSDT",
+            "SOL": "SOLUSDT", "SOLANA": "SOLUSDT",
+            "DOGE": "DOGEUSDT", "DOGECOIN": "DOGEUSDT"
+        }
+        pair = pair_map.get(sym, "BTCUSDT")
+        try:
+            url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={pair}"
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=2.5) as resp:
+                data = json.loads(resp.read().decode())
+                curr = float(data.get("lastPrice", 0))
+                chg = float(data.get("priceChangePercent", 0))
+                high = float(data.get("highPrice", curr * 1.02))
+                low = float(data.get("lowPrice", curr * 0.98))
+                vol = f"${float(data.get('quoteVolume', 0)) / 1e9:.2f}B"
+
+                prev_hist = cached_stock_data.get(sym, {}).get("history", [])
+                hist = list(prev_hist)
+                if not hist or abs(hist[-1] - curr) > 0.01:
+                    hist.append(round(curr, 2 if curr > 1 else 4))
+                if len(hist) > 25:
+                    hist.pop(0)
+                if len(hist) < 5:
+                    hist = [round(curr * (1 - 0.005 * i), 2 if curr > 1 else 4) for i in range(4, -1, -1)]
+
+                result = {
+                    "symbol": sym,
+                    "name": DEFAULT_MARKET_DATA.get(sym, {}).get("name") or f"{sym} USD",
+                    "price": round(curr, 2 if curr > 1 else 4),
+                    "change": round(chg, 2),
+                    "high": round(high, 2 if high > 1 else 4),
+                    "low": round(low, 2 if low > 1 else 4),
+                    "volume": vol,
+                    "currency": "$",
+                    "history": hist,
+                    "company_details": details
+                }
+                cached_stock_data[sym] = result
+                return result
+        except Exception:
+            pass
+
+    # 2. Yahoo Finance query2 Live Feed for Equities
+    api_sym = sym
     try:
-        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{api_sym}?interval=5m&range=1d"
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+        url = f"https://query2.finance.yahoo.com/v8/finance/chart/{api_sym}?interval=5m&range=1d"
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)"})
         with urllib.request.urlopen(req, timeout=3.0) as resp:
             data = json.loads(resp.read().decode())
             res = data.get("chart", {}).get("result", [])[0]
@@ -1037,6 +1160,7 @@ def fetch_live_stock_quote(symbol):
             cached_stock_data[sym] = result
             return result
     except Exception:
+        pass
         # High-fidelity realistic dynamic micro-ticks fallback
         if sym in cached_stock_data:
             item = dict(cached_stock_data[sym])
@@ -1168,11 +1292,22 @@ def public_tunnel_daemon():
                 try:
                     with open("PUBLIC_LINK.txt", "w") as f:
                         f.write(found_url)
+                    with open("ALEX_PUBLIC_PHONE_LINK.txt", "w") as f:
+                        f.write(f"ALEX LIVE PUBLIC PHONE & DESKTOP LINK:\n{found_url}\n\nLocal Wi-Fi Link: http://{local_ip}:5005\nLocal Machine: http://127.0.0.1:5005\n")
                     desktop_file = os.path.expanduser("~/Desktop/ALEX_PUBLIC_PHONE_LINK.txt")
                     with open(desktop_file, "w") as f:
                         f.write(f"ALEX PUBLIC LINK FOR PHONES & OTHER NETWORKS:\n{found_url}\n\nOpen this link on any iPhone, Android, or PC anywhere in the world!\nMicrophone, audio, and controls are fully enabled.")
-                except Exception:
-                    pass
+                    
+                    # Automatically update README.md badge and link every time
+                    if os.path.exists("README.md"):
+                        with open("README.md", "r") as rf:
+                            rm = rf.read()
+                        new_rm = re.sub(r'https://[a-zA-Z0-9-]+\.trycloudflare\.com', found_url, rm)
+                        if new_rm != rm:
+                            with open("README.md", "w") as wf:
+                                wf.write(new_rm)
+                except Exception as ex:
+                    print(f"[Link Sync Warning]: {ex}")
 
                 broadcast_event({"type": "public_link", "url": found_url, "local_ip": local_ip})
 
@@ -1520,6 +1655,55 @@ def handle_request_permission():
         return jsonify({"status": "ok", "message": msg})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
+
+# ---------------------------------------------------------
+# AI Engine Configuration & Code Sandbox Routes
+# ---------------------------------------------------------
+# ---------------------------------------------------------
+@app.route("/api/ai_config", methods=["GET", "POST"])
+def handle_ai_config():
+    if request.method == "POST":
+        data = request.json or {}
+        active = data.get("active_provider") or data.get("provider", "gemini")
+        cfg_update = {
+            "provider": active,
+            "active_provider": active,
+            "gemini_api_key": data.get("gemini_api_key", ""),
+            "groq_api_key": data.get("groq_api_key", ""),
+            "openai_api_key": data.get("openai_api_key", ""),
+            "ollama_url": data.get("ollama_endpoint") or data.get("ollama_url", "http://127.0.0.1:11434"),
+            "ollama_endpoint": data.get("ollama_endpoint") or data.get("ollama_url", "http://127.0.0.1:11434")
+        }
+        alex_ai_engine.save_ai_config(cfg_update)
+        current = alex_ai_engine.load_ai_config()
+        return jsonify({"status": "success", "active_provider": active, "config": current})
+
+    current = alex_ai_engine.load_ai_config()
+    current["active_provider"] = current.get("active_provider") or current.get("provider", "gemini")
+    current["ollama_endpoint"] = current.get("ollama_endpoint") or current.get("ollama_url", "http://127.0.0.1:11434")
+    return jsonify({"status": "success", "config": current})
+
+@app.route("/api/run_code", methods=["POST"])
+def handle_run_code():
+    data = request.json or {}
+    code = data.get("code", "").strip()
+    timeout = data.get("timeout", 8)
+    if not code:
+        return jsonify({"status": "error", "error": "No code provided to execute."})
+    res = alex_ai_engine.execute_python_code(code, timeout=timeout)
+    if "duration_ms" in res and "execution_time_ms" not in res:
+        res["execution_time_ms"] = res["duration_ms"]
+    return jsonify(res)
+
+@app.route("/api/deep_research", methods=["POST"])
+def handle_deep_research():
+    data = request.json or {}
+    topic = data.get("query") or data.get("topic", "").strip()
+    depth = data.get("depth", "standard")
+    if not topic:
+        return jsonify({"status": "error", "error": "No topic or query provided."})
+    res = alex_ai_engine.deep_research_dossier(topic, depth=depth)
+    return jsonify(res)
 
 # ---------------------------------------------------------
 # Transmit Text / Message Engine (WhatsApp, iMessage, Mail)
@@ -2015,6 +2199,16 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Fal
 
     for prefix in ["type ", "write ", "dictate "]:
         if clean.startswith(prefix):
+            # Check if this is an AI generation request (e.g. write code, write python, write a poem, write an essay)
+            ai_keywords = [
+                "code", "function", "script", "program", "class", "poem", "essay",
+                "story", "email", "letter", "algorithm", "solution", "joke", "summary",
+                "article", "query", "sql", "html", "css", "python", "javascript",
+                "react", "vue", "java", "c++", "rust", "me a", "me an", "about"
+            ]
+            if prefix == "write " and any(k in clean for k in ai_keywords):
+                break  # Don't hijack! Route to AI OmniBrain!
+
             text_to_type = clean[len(prefix):].strip()
             if text_to_type:
                 if execute_on_mac:
@@ -2403,10 +2597,16 @@ def execute_universal_task(raw_command, execute_on_mac=True, speak_on_server=Fal
         "what can you do": "I can type anywhere, launch apps, manage your notes, solve math, set timers, control hardware, text contacts, and answer any query without opening web pages.",
         "how are you": "All processors running cool at nominal temperature. Ready for your instructions."
     }
-    for k, resp in conversational_map.items():
-        if re.search(r'\b' + re.escape(k) + r'\b', clean):
-            speak_async(resp)
-            return resp
+    clean_stripped = re.sub(r'[\!\.\?]+$', '', clean).strip()
+    if clean_stripped in conversational_map:
+        resp = conversational_map[clean_stripped]
+        speak_async(resp)
+        return resp
+    c_words = clean_stripped.split()
+    if len(c_words) <= 2 and c_words and c_words[0] in ["hello", "hi", "hey"]:
+        resp = "Hello! Alex neural interface online. How can I assist you?"
+        speak_async(resp)
+        return resp
 
     # ---------------------------------------------------------
     # 15. Media (YouTube Play)

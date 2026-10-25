@@ -55,7 +55,10 @@ function initWebAudio() {
 }
 
 // Synthesize Sci-Fi UI Beeps
+let sfxEnabled = localStorage.getItem("alex_sfx_enabled") !== "false";
+
 function playSciFiBeep(type = "activate") {
+  if (!sfxEnabled) return;
   if (!audioCtx) {
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1567,13 +1570,71 @@ function renderMemoryCard(content, title) {
   feedLog.scrollTop = feedLog.scrollHeight;
 }
 
+function formatAiMarkdown(text) {
+  if (!text) return "";
+  let str = text;
+
+  // Extract and replace triple backtick code blocks
+  const codeBlocks = [];
+  str = str.replace(/```(?:([a-zA-Z0-9_-]+)\n)?([\s\S]*?)```/g, (match, lang, code) => {
+    const idx = codeBlocks.length;
+    const cleanLang = (lang || "python").toLowerCase();
+    const cleanCode = code.trim();
+    codeBlocks.push({ lang: cleanLang, code: cleanCode });
+    return `___CODE_BLOCK_${idx}___`;
+  });
+
+  // Escape HTML in the remaining text
+  str = str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  // Bold **text**
+  str = str.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Italic *text*
+  str = str.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+  // Inline code `code`
+  str = str.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+  // Line breaks
+  str = str.replace(/\n/g, '<br>');
+
+  // Re-inject code blocks
+  codeBlocks.forEach((block, idx) => {
+    const encodedCode = block.code
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    const jsonEscapedCode = encodeURIComponent(block.code);
+    const isPy = (block.lang === "python" || block.lang === "py" || block.lang === "code");
+    const runBtn = isPy
+      ? `<button class="code-action-btn run-btn" onclick="openAndRunCodeInStudio(decodeURIComponent('${jsonEscapedCode}'))">⚡ Run in Sandbox</button>`
+      : '';
+    const copyBtn = `<button class="code-action-btn copy-btn" onclick="copyCodeSnippet(decodeURIComponent('${jsonEscapedCode}'), this)">📋 Copy</button>`;
+    
+    const blockHtml = `
+      <div class="ai-rendered-code-box">
+        <div class="code-box-header">
+          <span class="code-box-lang">${block.lang.toUpperCase()}</span>
+          <div class="code-box-actions">
+            ${runBtn}
+            ${copyBtn}
+          </div>
+        </div>
+        <pre class="code-box-content"><code>${encodedCode}</code></pre>
+      </div>
+    `;
+    str = str.replace(`___CODE_BLOCK_${idx}___`, blockHtml);
+  });
+
+  return str;
+}
+
 function renderKnowledgeCard(action) {
   if (!feedLog) return;
   const div = document.createElement("div");
   div.className = "log-entry phone-action-card knowledge-feed-card";
   const cat = action.category || "WORLD KNOWLEDGE ENCYCLOPEDIA";
   const title = action.title || "OmniBrain Dossier";
-  const content = action.content || "";
+  const rawContent = action.content || "";
+  const formattedContent = formatAiMarkdown(rawContent);
   const url = action.url;
 
   div.innerHTML = `
@@ -1586,7 +1647,7 @@ function renderKnowledgeCard(action) {
         ${title}
       </h3>
       <div style="font-family: var(--font-mono); font-size: 11px; line-height: 1.6; color: #e2e8f0; margin-bottom: 8px;">
-        ${content}
+        ${formattedContent}
       </div>
       ${url ? `<a href="${url}" target="_blank" rel="noopener noreferrer" class="knowledge-card-link-btn">READ COMPLETE ENCYCLOPEDIC DOSSIER ↗</a>` : ''}
     </div>
@@ -2262,12 +2323,37 @@ function openPermissionsModal() {
   playSciFiBeep("activate");
 }
 
+function openAiConfigModal() {
+  const m = document.getElementById("aiConfigModal");
+  if (m) m.classList.add("active");
+  playSciFiBeep("activate");
+  loadAiConfiguration();
+}
+
+function openCodeStudioModal() {
+  const m = document.getElementById("codeStudioModal");
+  if (m) m.classList.add("active");
+  playSciFiBeep("activate");
+}
+
+function openResearchModal() {
+  const m = document.getElementById("researchModal");
+  if (m) m.classList.add("active");
+  playSciFiBeep("activate");
+}
+
 function closeModals() {
   if (chartsModal) chartsModal.classList.remove("active");
   if (commsModal) commsModal.classList.remove("active");
   if (shareModal) shareModal.classList.remove("active");
   if (permissionsModal) permissionsModal.classList.remove("active");
   if (stocksModal) stocksModal.classList.remove("active");
+  const aiConfigModal = document.getElementById("aiConfigModal");
+  if (aiConfigModal) aiConfigModal.classList.remove("active");
+  const codeStudioModal = document.getElementById("codeStudioModal");
+  if (codeStudioModal) codeStudioModal.classList.remove("active");
+  const researchModal = document.getElementById("researchModal");
+  if (researchModal) researchModal.classList.remove("active");
 }
 
 function updatePermissionsButtonState(isGranted) {
@@ -2692,6 +2778,8 @@ const INITIAL_STOCKS = [
   { symbol: "NVDA", name: "NVIDIA Corp", price: 210.96, change: 1.45, high: 213.50, low: 208.20, volume: "48.2M", currency: "$", history: [206.0, 207.5, 209.0, 210.2, 210.96] },
   { symbol: "AAPL", name: "Apple Inc", price: 347.72, change: -0.14, high: 349.80, low: 345.10, volume: "52.8M", currency: "$", history: [346.0, 347.1, 348.5, 347.9, 347.72] },
   { symbol: "BTC", name: "Bitcoin USD", price: 80083.92, change: -1.23, high: 81500.00, low: 79200.00, volume: "$28.4B", currency: "$", history: [79500.0, 79900.0, 80400.0, 80200.0, 80083.92] },
+  { symbol: "SOL", name: "Solana USD", price: 178.45, change: 3.82, high: 182.10, low: 171.30, volume: "$4.1B", currency: "$", history: [170.0, 172.5, 175.2, 176.8, 178.45] },
+  { symbol: "DOGE", name: "Dogecoin USD", price: 0.165, change: 5.12, high: 0.172, low: 0.154, volume: "$1.8B", currency: "$", history: [0.155, 0.158, 0.161, 0.163, 0.165] },
   { symbol: "TSLA", name: "Tesla Inc", price: 242.80, change: 2.15, high: 245.00, low: 238.40, volume: "64.1M", currency: "$", history: [238.0, 239.5, 241.0, 242.0, 242.8] },
   { symbol: "ETH", name: "Ethereum USD", price: 2740.10, change: 1.15, high: 2780.00, low: 2710.00, volume: "$14.2B", currency: "$", history: [2690.0, 2715.0, 2730.0, 2738.0, 2740.1] },
   { symbol: "GOOGL", name: "Alphabet Inc", price: 182.40, change: 0.85, high: 183.90, low: 181.10, volume: "22.5M", currency: "$", history: [180.5, 181.2, 181.9, 182.1, 182.4] },
@@ -3386,3 +3474,374 @@ function updateLiveCpu() {
   cpuEl.innerText = `CPU: ${Math.max(12, base + jitter)}%`;
 }
 setInterval(updateLiveCpu, 2000);
+
+// =============================================================
+// AI COCKPIT ADVANCED SUBSYSTEMS (AI ENGINE, CODE STUDIO, RESEARCH)
+// =============================================================
+
+// 1. Audio SFX Toggle Controller
+const sfxToggleBtn = document.getElementById("sfxToggleBtn");
+if (sfxToggleBtn) {
+  sfxToggleBtn.innerText = sfxEnabled ? "🔊 SFX: ON" : "🔇 SFX: OFF";
+  sfxToggleBtn.addEventListener("click", () => {
+    sfxEnabled = !sfxEnabled;
+    localStorage.setItem("alex_sfx_enabled", sfxEnabled ? "true" : "false");
+    sfxToggleBtn.innerText = sfxEnabled ? "🔊 SFX: ON" : "🔇 SFX: OFF";
+    if (sfxEnabled) playSciFiBeep("wake");
+  });
+}
+
+// 2. AI Multi-Model Configuration Subsystem
+async function loadAiConfiguration() {
+  try {
+    const res = await fetch("/api/ai_config");
+    const data = await res.json();
+    if (data.status === "success" && data.config) {
+      const cfg = data.config;
+      const provSelect = document.getElementById("aiActiveProvider");
+      if (provSelect) provSelect.value = cfg.active_provider || "gemini";
+
+      const geminiKey = document.getElementById("geminiApiKey");
+      if (geminiKey && cfg.gemini_api_key) geminiKey.value = cfg.gemini_api_key;
+
+      const groqKey = document.getElementById("groqApiKey");
+      if (groqKey && cfg.groq_api_key) groqKey.value = cfg.groq_api_key;
+
+      const openaiKey = document.getElementById("openaiApiKey");
+      if (openaiKey && cfg.openai_api_key) openaiKey.value = cfg.openai_api_key;
+
+      const ollamaEndpoint = document.getElementById("ollamaEndpoint");
+      if (ollamaEndpoint && cfg.ollama_endpoint) ollamaEndpoint.value = cfg.ollama_endpoint;
+
+      updateAiBadge(cfg.active_provider);
+    }
+  } catch (e) {
+    console.warn("Could not load AI configuration:", e);
+  }
+}
+
+async function saveAiConfiguration(e) {
+  if (e) e.preventDefault();
+  const provSelect = document.getElementById("aiActiveProvider");
+  const geminiKey = document.getElementById("geminiApiKey");
+  const groqKey = document.getElementById("groqApiKey");
+  const openaiKey = document.getElementById("openaiApiKey");
+  const ollamaEndpoint = document.getElementById("ollamaEndpoint");
+  const statusEl = document.getElementById("aiConfigStatus");
+
+  const payload = {
+    active_provider: provSelect ? provSelect.value : "gemini",
+    gemini_api_key: geminiKey ? geminiKey.value.trim() : "",
+    groq_api_key: groqKey ? groqKey.value.trim() : "",
+    openai_api_key: openaiKey ? openaiKey.value.trim() : "",
+    ollama_endpoint: ollamaEndpoint ? ollamaEndpoint.value.trim() : "http://127.0.0.1:11434"
+  };
+
+  if (statusEl) {
+    statusEl.textContent = "Saving AI Configuration...";
+    statusEl.style.color = "#00f0ff";
+  }
+
+  try {
+    const res = await fetch("/api/ai_config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      if (statusEl) {
+        statusEl.textContent = `✓ Model updated to ${data.active_provider.toUpperCase()}`;
+        statusEl.style.color = "#00ff88";
+      }
+      updateAiBadge(data.active_provider);
+      playSciFiBeep("activate");
+      setTimeout(() => {
+        closeModals();
+        if (statusEl) statusEl.textContent = "";
+      }, 1000);
+    } else {
+      if (statusEl) {
+        statusEl.textContent = "Error: " + (data.error || "Failed to save");
+        statusEl.style.color = "#ef4444";
+      }
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.textContent = "Network error: " + err.message;
+      statusEl.style.color = "#ef4444";
+    }
+  }
+}
+
+function updateAiBadge(provider) {
+  const badge = document.querySelector(".ai-model-badge");
+  if (!badge) return;
+  const names = {
+    gemini: "GEMINI 2.5 FLASH",
+    groq: "GROQ LLAMA-3.3 70B",
+    openai: "GPT-4O MINI",
+    local_ollama: "LOCAL OLLAMA",
+    omnibrain: "OMNIBRAIN STUDIO"
+  };
+  badge.innerText = `AI: ${names[provider] || (provider ? provider.toUpperCase() : "OMNIBRAIN")}`;
+}
+
+const openAiConfigBtn = document.getElementById("openAiConfigBtn");
+const optAiModelsBtn = document.getElementById("optAiModelsBtn");
+const closeAiConfigBtn = document.getElementById("closeAiConfigBtn");
+const aiConfigForm = document.getElementById("aiConfigForm");
+
+if (openAiConfigBtn) openAiConfigBtn.addEventListener("click", openAiConfigModal);
+if (optAiModelsBtn) optAiModelsBtn.addEventListener("click", openAiConfigModal);
+if (closeAiConfigBtn) closeAiConfigBtn.addEventListener("click", closeModals);
+if (aiConfigForm) aiConfigForm.addEventListener("submit", saveAiConfiguration);
+
+// 3. Live Python Code Studio Subsystem
+const CODE_PRESETS = {
+  custom: `# Interactive Python Sandbox - Alex OmniBrain Engine\n# Write any Python code below and press 'RUN CODE' (or Ctrl+Enter)\n\ndef compute_stats(numbers):\n    return {\n        "count": len(numbers),\n        "sum": sum(numbers),\n        "mean": sum(numbers) / len(numbers),\n        "min": min(numbers),\n        "max": max(numbers)\n    }\n\ndata = [12, 45, 67, 89, 34, 23, 78, 91, 56]\nprint("Data:", data)\nprint("Statistics:", compute_stats(data))\n`,
+  fibonacci: `def fibonacci(n):\n    sequence = [0, 1]\n    while len(sequence) < n:\n        sequence.append(sequence[-1] + sequence[-2])\n    return sequence[:n]\n\nprint("=" * 40)\nprint("FIBONACCI SEQUENCE GENERATOR")\nprint("=" * 40)\nterms = 15\nprint(f"First {terms} Fibonacci numbers:")\nprint(fibonacci(terms))\n`,
+  primes: `def sieve_of_eratosthenes(limit):\n    primes = []\n    sieve = [True] * (limit + 1)\n    for p in range(2, limit + 1):\n        if sieve[p]:\n            primes.append(p)\n            for i in range(p * p, limit + 1, p):\n                sieve[i] = False\n    return primes\n\nlimit = 100\nprimes = sieve_of_eratosthenes(limit)\nprint(f"Prime numbers up to {limit} ({len(primes)} total):")\nprint(primes)\n`,
+  quicksort: `def quicksort(arr):\n    if len(arr) <= 1:\n        return arr\n    pivot = arr[len(arr) // 2]\n    left = [x for x in arr if x < pivot]\n    middle = [x for x in arr if x == pivot]\n    right = [x for x in arr if x > pivot]\n    return quicksort(left) + middle + quicksort(right)\n\narray = [64, 34, 25, 12, 22, 11, 90, 88, 45, 50, 7]\nprint("Original array:", array)\nprint("Sorted array:  ", quicksort(array))\n`,
+  twosum: `def two_sum(nums, target):\n    lookup = {}\n    for i, num in enumerate(nums):\n        complement = target - num\n        if complement in lookup:\n            return [lookup[complement], i]\n        lookup[num] = i\n    return []\n\nnumbers = [2, 7, 11, 15, 23, 31]\ntarget = 26\nres = two_sum(numbers, target)\nprint(f"Numbers: {numbers}")\nprint(f"Target:  {target}")\nif res:\n    print(f"Indices: {res} -> Values: {numbers[res[0]]} + {numbers[res[1]]} = {target}")\n`,
+  system_info: `import platform, sys, os, time\n\nprint("=" * 48)\nprint("ALEX OMNIBRAIN PYTHON RUNTIME ENVIRONMENT")\nprint("=" * 48)\nprint(f"Python Version: {platform.python_version()} ({platform.python_implementation()})")\nprint(f"System OS:      {platform.system()} {platform.release()} ({platform.machine()})")\nprint(f"Epoch Time:     {time.time()}")\nprint(f"Working Dir:    {os.getcwd()}")\nprint("=" * 48)\nprint("SANDBOX STATUS: READY & ULTRA-FAST")\n`
+};
+
+const optCodeStudioBtn = document.getElementById("optCodeStudioBtn");
+const closeCodeStudioBtn = document.getElementById("closeCodeStudioBtn");
+const codeSnippetSelect = document.getElementById("codeSnippetSelect");
+const pythonCodeEditor = document.getElementById("pythonCodeEditor");
+const codeOutputConsole = document.getElementById("codeOutputConsole");
+const codeExecStats = document.getElementById("codeExecStats");
+const runPythonBtn = document.getElementById("runPythonBtn");
+const clearCodeBtn = document.getElementById("clearCodeBtn");
+const copyCodeBtn = document.getElementById("copyCodeBtn");
+
+if (optCodeStudioBtn) optCodeStudioBtn.addEventListener("click", openCodeStudioModal);
+if (closeCodeStudioBtn) closeCodeStudioBtn.addEventListener("click", closeModals);
+
+if (codeSnippetSelect && pythonCodeEditor) {
+  codeSnippetSelect.addEventListener("change", () => {
+    const key = codeSnippetSelect.value;
+    if (CODE_PRESETS[key]) {
+      pythonCodeEditor.value = CODE_PRESETS[key];
+      if (codeOutputConsole) codeOutputConsole.textContent = "Ready. Press '⚡ RUN CODE' to execute.";
+      if (codeExecStats) codeExecStats.textContent = "Ready";
+      playSciFiBeep("switch");
+    }
+  });
+}
+
+if (clearCodeBtn && pythonCodeEditor) {
+  clearCodeBtn.addEventListener("click", () => {
+    pythonCodeEditor.value = "";
+    if (codeOutputConsole) codeOutputConsole.textContent = "Buffer cleared.";
+    if (codeExecStats) codeExecStats.textContent = "Ready";
+    pythonCodeEditor.focus();
+  });
+}
+
+if (copyCodeBtn && pythonCodeEditor) {
+  copyCodeBtn.addEventListener("click", () => {
+    const text = pythonCodeEditor.value;
+    if (navigator.clipboard && text) {
+      navigator.clipboard.writeText(text).then(() => {
+        const orig = copyCodeBtn.innerText;
+        copyCodeBtn.innerText = "✓ COPIED";
+        setTimeout(() => { copyCodeBtn.innerText = orig; }, 1500);
+      });
+    }
+  });
+}
+
+// Enable Tab indentation inside textarea
+if (pythonCodeEditor) {
+  pythonCodeEditor.addEventListener("keydown", (e) => {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = pythonCodeEditor.selectionStart;
+      const end = pythonCodeEditor.selectionEnd;
+      pythonCodeEditor.value = pythonCodeEditor.value.substring(0, start) + "    " + pythonCodeEditor.value.substring(end);
+      pythonCodeEditor.selectionStart = pythonCodeEditor.selectionEnd = start + 4;
+    } else if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+      e.preventDefault();
+      executeCurrentPythonCode();
+    }
+  });
+}
+
+async function executeCurrentPythonCode() {
+  if (!pythonCodeEditor || !codeOutputConsole) return;
+  const code = pythonCodeEditor.value.trim();
+  if (!code) {
+    codeOutputConsole.textContent = "Error: Code buffer is empty. Type some Python code or select a preset.";
+    return;
+  }
+
+  if (runPythonBtn) {
+    runPythonBtn.disabled = true;
+    runPythonBtn.innerText = "⏳ RUNNING...";
+  }
+  codeOutputConsole.textContent = ">>> Running code in secure Python sandbox...";
+  if (codeExecStats) codeExecStats.textContent = "Executing...";
+
+  try {
+    const res = await fetch("/api/run_code", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: code, timeout: 8 })
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      let out = "";
+      if (data.stdout) out += data.stdout;
+      if (data.stderr) out += (out ? "\n--- STDERR ---\n" : "") + data.stderr;
+      if (!out) out = "(Process finished with exit code 0, no output)";
+      codeOutputConsole.textContent = out;
+      if (codeExecStats) codeExecStats.textContent = `Completed in ${data.execution_time_ms}ms (Exit: ${data.exit_code})`;
+      playSciFiBeep("execute");
+    } else {
+      codeOutputConsole.textContent = `[EXECUTION FAILED]\nError: ${data.error || "Runtime error"}\n${data.stderr || ""}`;
+      if (codeExecStats) codeExecStats.textContent = `Failed (Exit: ${data.exit_code || 1})`;
+    }
+  } catch (err) {
+    codeOutputConsole.textContent = `[NETWORK ERROR] Could not reach runner: ${err.message}`;
+    if (codeExecStats) codeExecStats.textContent = "Error";
+  } finally {
+    if (runPythonBtn) {
+      runPythonBtn.disabled = false;
+      runPythonBtn.innerText = "⚡ RUN CODE";
+    }
+  }
+}
+
+if (runPythonBtn) runPythonBtn.addEventListener("click", executeCurrentPythonCode);
+
+// Global Sandbox helper methods for rendered chat cards
+window.openAndRunCodeInStudio = function(code) {
+  openCodeStudioModal();
+  if (pythonCodeEditor) {
+    pythonCodeEditor.value = code;
+    executeCurrentPythonCode();
+  }
+};
+
+window.copyCodeSnippet = function(code, btn) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => {
+      const orig = btn.innerText;
+      btn.innerText = "✓ Copied!";
+      setTimeout(() => { btn.innerText = orig; }, 1800);
+    });
+  }
+};
+
+// 4. Deep Multi-Source Research Engine Subsystem
+const optDeepResearchBtn = document.getElementById("optDeepResearchBtn");
+const closeResearchBtn = document.getElementById("closeResearchBtn");
+const researchForm = document.getElementById("researchForm");
+
+if (optDeepResearchBtn) optDeepResearchBtn.addEventListener("click", openResearchModal);
+if (closeResearchBtn) closeResearchBtn.addEventListener("click", closeModals);
+
+async function executeDeepResearch(e) {
+  if (e) e.preventDefault();
+  const queryInput = document.getElementById("researchTopicInput") || document.getElementById("researchQuery");
+  const depthInput = document.getElementById("researchDepth");
+  const container = document.getElementById("researchResultsContainer");
+  const submitBtn = document.getElementById("startResearchBtn");
+
+  const query = queryInput ? queryInput.value.trim() : "";
+  const depth = depthInput ? depthInput.value : "standard";
+  if (!query || !container) return;
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = "🔍 RESEARCHING WEB...";
+  }
+
+  container.innerHTML = `
+    <div style="text-align: center; padding: 30px; font-family: var(--font-mono); color: #00f0ff;">
+      <div style="font-size: 26px; margin-bottom: 12px; animation: pulse 1s infinite;">⚡</div>
+      <div style="font-weight: 700; letter-spacing: 1px;">SYNTHESIZING DEEP RESEARCH DOSSIER...</div>
+      <div style="font-size: 11px; color: #94a3b8; margin-top: 6px;">Searching live encyclopedias, scientific databases & knowledge graphs for "${query}"</div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch("/api/deep_research", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: query, depth: depth })
+    });
+    const data = await res.json();
+
+    if (data.status === "success") {
+      playSciFiBeep("execute");
+      const d = data.dossier;
+
+      let sourcesHtml = "";
+      if (d.sources && d.sources.length) {
+        sourcesHtml = `
+          <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);">
+            <div style="font-size: 11px; font-weight: 700; color: #00f0ff; margin-bottom: 8px;">VERIFIED CITATIONS & SOURCES:</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              ${d.sources.map(s => `
+                <a href="${s.url}" target="_blank" rel="noopener noreferrer" style="font-size: 11px; color: #38bdf8; text-decoration: none; display: flex; align-items: center; gap: 6px; background: rgba(0,240,255,0.04); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(0,240,255,0.12);">
+                  <span>🔗</span>
+                  <strong style="color: #ffffff;">${s.title}</strong>
+                  <span style="color: #64748b; margin-left: auto;">${s.source} ↗</span>
+                </a>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      container.innerHTML = `
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(0, 240, 255, 0.3); border-radius: 10px; padding: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+            <h3 style="font-family: var(--font-display); font-size: 16px; color: #ffffff; margin: 0;">${d.topic.toUpperCase()}</h3>
+            <span style="font-family: var(--font-mono); font-size: 10px; color: #00ff88; background: rgba(0,255,136,0.1); padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(0,255,136,0.25);">DOSSIER COMPILED</span>
+          </div>
+          <div style="font-family: var(--font-mono); font-size: 12px; line-height: 1.7; color: #e2e8f0; white-space: pre-wrap;">
+            ${formatAiMarkdown(d.synthesis)}
+          </div>
+          ${sourcesHtml}
+        </div>
+      `;
+
+      // Render into main cockpit feed as well
+      renderKnowledgeCard({
+        title: `Research: ${d.topic}`,
+        category: "DEEP RESEARCH DOSSIER",
+        content: d.synthesis.slice(0, 450) + (d.synthesis.length > 450 ? "..." : ""),
+        url: d.sources && d.sources.length ? d.sources[0].url : null
+      });
+
+    } else {
+      container.innerHTML = `
+        <div style="color: #ef4444; font-family: var(--font-mono); padding: 16px; background: rgba(239,68,68,0.1); border-radius: 8px;">
+          Failed to generate research dossier: ${data.error || "Unknown error"}
+        </div>
+      `;
+    }
+  } catch (err) {
+    container.innerHTML = `
+      <div style="color: #ef4444; font-family: var(--font-mono); padding: 16px; background: rgba(239,68,68,0.1); border-radius: 8px;">
+        Network error during research: ${err.message}
+      </div>
+    `;
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = "⚡ COMMENCE RESEARCH";
+    }
+  }
+}
+
+if (researchForm) researchForm.addEventListener("submit", executeDeepResearch);
+
+// Initialize AI configuration on page load
+loadAiConfiguration();

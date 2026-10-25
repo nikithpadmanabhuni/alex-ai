@@ -1,61 +1,51 @@
-# ⚡ ALEX AI — Autonomous Neural Intelligence Cockpit
+# ⚡ ALEX AI — Autonomous Neural Intelligence Cockpit v4.2
 
-[![Worldwide HTTPS Tunnel](https://img.shields.io/badge/Live_Website-HTTPS_Online-00f0ff?style=for-the-badge&logo=cloudflare)](https://named-here-hold-garlic.trycloudflare.com)
+[![Worldwide HTTPS Tunnel](https://img.shields.io/badge/Live_Website-HTTPS_Online-00f0ff?style=for-the-badge&logo=cloudflare)](https://ending-alert-thousand-town.trycloudflare.com)
 [![GitHub Repository](https://img.shields.io/badge/GitHub-nikithpadmanabhuni%2Falex--ai-10b981?style=for-the-badge&logo=github)](https://github.com/nikithpadmanabhuni/alex-ai.git)
 [![Python Version](https://img.shields.io/badge/Python-3.11%20%7C%203.14-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-**Alex AI** is a production-grade autonomous cognitive assistant and futuristic Cyberpunk Cockpit. It operates simultaneously across laptops, desktops, and mobile smartphones worldwide with real-time bidirectional voice interaction, live stock market telemetry, and the **OmniBrain Universal Intelligence Engine** capable of answering any question in the world.
+**Alex AI** is an autonomous cognitive assistant and futuristic Cyberpunk Cockpit. It operates simultaneously across laptops, desktops, and mobile smartphones worldwide with real-time bidirectional voice interaction, live financial telemetry, an isolated **Python Code Studio sandbox**, a **Deep Research intelligence engine**, and a multi-model cascade across **Google Gemini**, **Groq (Llama-3.3 70B)**, **OpenAI (GPT-4o)**, **Local Ollama**, and the internal **OmniBrain Engine**.
 
 ---
 
 ## 🌐 Live Access Links
 
-- **🌍 Global Public HTTPS Website:** [https://named-here-hold-garlic.trycloudflare.com](https://named-here-hold-garlic.trycloudflare.com)
+- **🌍 Global Public HTTPS Website:** [https://ending-alert-thousand-town.trycloudflare.com](https://ending-alert-thousand-town.trycloudflare.com)
 - **💻 Local Machine Cockpit:** [http://127.0.0.1:5005](http://127.0.0.1:5005)
 - **📱 Local Wi-Fi Network:** [http://192.168.0.121:5005](http://192.168.0.121:5005)
 - **📦 GitHub Repository:** [https://github.com/nikithpadmanabhuni/alex-ai.git](https://github.com/nikithpadmanabhuni/alex-ai.git)
 
----
-
-## 📸 Interface Showcase
-
-| Desktop Interface (1440x900 Cockpit) | Mobile Adaptive View (iPhone / Android) |
-| :---: | :---: |
-| ![Alex Desktop Interface](desktop_screenshot.png) | <img src="mobile_screenshot.png" width="300" alt="Alex Mobile View" /> |
+*(Note: The public HTTPS link is automatically synchronized and updated every time Alex launches via encrypted Cloudflare tunnels.)*
 
 ---
 
-## 🧠 OmniBrain: Universal World Knowledge Engine
+## 🚀 Key v4.2 Capabilities
 
-Alex is equipped with the multi-tier **OmniBrain Universal Knowledge Engine**, which answers any question in the world without requiring external browser popups:
+### 🧠 1. Multi-Model AI Engine & Cascade
+- **Dynamic Provider Cascade:** Seamlessly routes between **Google Gemini (2.5 Flash)**, **Groq (Llama-3.3 70B @ 500+ tok/s)**, **OpenAI (GPT-4o-mini)**, **Local Ollama**, and the autonomous **OmniBrain Algorithmic Studio**.
+- **Model Architecture Modal:** Configure API keys directly in the UI via the `AI ENGINE` header button or left navigation. Keys are saved to `alex_config.json`.
 
-1. **Physical Sciences & Astronomy:** Speed of light, gravitational constants, quantum mechanics, distances to Moon/Sun, age of universe, black holes.
-2. **World Geography & Atlas:** Capitals of all 60+ countries, deepest ocean trenches, highest mountain peaks, longest rivers, largest deserts.
-3. **Lexicon & Etymology:** Full definitions, parts of speech, and pronunciations via integrated lexical engines (`"define serendipity"`).
-4. **Global Real-Time Weather:** Live weather for any city on Earth (`"weather in Tokyo"`, `"weather in London"`).
-5. **Advanced Mathematics & Unit Conversions:** Scientific trigonometric functions (`sin`, `cos`, `tan`), square roots, exponents, factorials, percentages, and conversions (miles $\leftrightarrow$ km, Fahrenheit $\leftrightarrow$ Celsius, lbs $\leftrightarrow$ kg, GB $\leftrightarrow$ MB).
-6. **Wikipedia OpenSearch & Entity Synthesizer:** Real-time factual summaries across millions of global historical, scientific, technological, and cultural topics.
-7. **Interactive Knowledge Cards:** Every factual response generates a glowing Cyberpunk Knowledge Card in the live cockpit feed.
+### ⚡ 2. AI Code Studio & Live Python Sandbox
+- **In-Browser Sandbox:** Write and execute Python 3 code with strict execution timeouts, instant stderr/stdout terminal capture, and execution performance stats (~22ms latency).
+- **Algorithmic Presets:** Quicksort, Sieve of Eratosthenes (Primes), Fibonacci Generator, Two Sum hash lookup, and System Runtime Diagnostics.
+- **One-Click Execution:** Coding questions answered in chat include a **⚡ Run in Sandbox** button to test the solution in the code runner.
 
----
+### 🔬 3. Deep Research & Multi-Source Intelligence
+- **Automated Dossier Generation:** Synthesizes structured reports with Executive Summaries, Key Architectural Principles, Empirical Analyses, and verified Wikipedia citation links.
 
-## 📈 Corporate & Live Stock Market Intelligence
+### 📈 4. Real-Time Crypto & Stock Market Telemetry
+- **Live Binance & Yahoo Query2 Streaming:** Sub-second ticker tracking for **BTC**, **ETH**, **SOL**, **DOGE**, **NVDA**, **MSFT**, **AAPL**, **TSLA**, **GOOGL**, **AMZN**, and **SPY**.
+- **Corporate Fundamentals:** Live market caps, P/E ratios, EPS, 52-week meters, executive bios, and live news briefs.
 
-- **Live Tickers:** Real-time pricing, percentage change, and gradient charts for major equities (**NVDA**, **AAPL**, **MSFT**, **TSLA**, **GOOGL**, **AMZN**).
-- **Fundamental Analysis:** Executive leadership (CEO), Market Cap, P/E Ratio, EPS, Beta, 52-Week Range meter, and live corporate news briefs.
-- **Voice Queries:** Ask *"show details of companies and all"*, *"details of Apple"*, or *"who is the CEO of Nvidia"*.
-
----
-
-## 🎙️ Cross-Browser Voice Pipeline
-
-- **Primary Pipeline:** Web Speech API on Chrome, Edge, Safari, Android Chrome, and iOS Safari.
-- **Universal Fallback:** HTML5 `MediaRecorder` audio uploads to `/api/voice_upload` (converted on the server to 16kHz mono PCM WAV and transcribed via Google Speech API) for browsers lacking native speech APIs.
-- **Zero Audio Echo:** Single-stream audio playback via `/api/tts_audio` with deduplication window and `speak_on_server = False` for web clients.
+### 🎙️ 5. Cybernetic Audio & Voice Protocol
+- **Web Audio SFX:** Synthesizes dual-tone futuristic UI chimes for wake (`650Hz → 1150Hz`), activation (`800Hz → 1400Hz`), and execution (`550Hz → 950Hz`), with a header `🔊 SFX: ON/OFF` toggle.
+- **Bidirectional Speech:** Native Web Speech API with fallback HTML5 `MediaRecorder` upload for universal compatibility.
+- **Hardware Automation:** System volume, mute/unmute, brightness, battery telemetry, and camera snapshots.
 
 ---
 
-## 🚀 Quickstart & Local Setup
+## 🛠️ Quickstart & Local Setup
 
 ```bash
 # 1. Clone repository
@@ -71,7 +61,7 @@ pip install -r requirements.txt
 python alex.py
 ```
 
-Open your browser at `http://127.0.0.1:5005` or access the generated Cloudflare HTTPS URL from any mobile phone worldwide.
+Open `http://127.0.0.1:5005` in your browser or scan the QR code / open the public HTTPS link on any smartphone worldwide.
 
 ---
 

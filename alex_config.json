@@ -1,0 +1,12 @@
+{
+  "provider": "omnibrain",
+  "gemini_api_key": "",
+  "groq_api_key": "",
+  "openai_api_key": "",
+  "ollama_url": "http://127.0.0.1:11434",
+  "model": "auto",
+  "temperature": 0.7,
+  "max_tokens": 1500,
+  "active_provider": "omnibrain",
+  "ollama_endpoint": "http://127.0.0.1:11434"
+}
